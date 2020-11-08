@@ -1,0 +1,10 @@
+[
+    {
+        "name": "A32NX Stable",
+        "path": "Optionals/A32NXS"
+    },
+    {
+        "name": "A32NX Dev",
+        "path": "Optionals/A32NXD"
+    }
+]
