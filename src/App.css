@@ -1,0 +1,86 @@
+.logo-image {
+    display: block;
+    margin: 30px auto 60px auto;
+}
+
+.overtop-label {
+    transform: translateY(-200%);
+    position: absolute;
+    color: white;
+    font-weight: bold;
+    font-size: 36px;
+}
+
+.directory-text {
+    margin: 10px;
+    color: white;
+}
+
+.directory-div {
+    margin: 4% auto 0 auto;
+    width: 95%;
+    height: 20%;
+    border-radius: 5px;
+    border: 1px solid #707070;
+}
+
+.features-grid {
+    display: grid;
+    color: white;
+    margin: 2% auto 2% auto;
+    align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    width: 90%;
+}
+
+.custom-checkbox {
+    height: 25px;
+    width: 25px;
+    border: 1px solid #707070;
+    float: left;
+    margin: auto 10px auto auto;
+}
+
+.checkbox-hover {
+    background-color: #20232A;
+}
+
+.checkbox-image {
+    transform: scale(75%);
+}
+
+.feature-text {
+    font-size: 20px;
+    margin: 5px;
+    display: inline;
+}
+
+.feature-list-text {
+    font-size: 36px;
+    width: 95%;
+    margin: 20px auto auto auto;
+    color: white;
+
+}
+
+.install-button {
+    background-color: #373E4B;
+    border: 1px solid #373E4B;
+    border-radius: 5px;
+    margin: auto;
+    display: block;
+    font-size: 50px;
+    width: 20%;
+    color: white;
+    transition-duration: 0.1s;
+}
+
+.install-button:hover {
+    background-color: #20232A;
+}
+
+body {
+    background: rgb(35,31,31);
+    background: linear-gradient(90deg, rgba(35,31,31,1) 0%, rgba(5,23,38,1) 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
