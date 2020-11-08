@@ -1,18 +1,25 @@
-use std::{fs, io::{self, Cursor}};
+use std::{collections::HashSet, fs, io::{self, Cursor}};
 
 use bytes::Bytes;
+use log::{info, warn};
 use zip::ZipArchive;
 
-use crate::util::{Features, strip_path_beginning};
+use crate::util::{Features, get_path_beginning, strip_path_beginning};
 
 const COMMUNITY_PREFIX: &str = "PLACE IN COMMUNITY PACKAGES";
+const OPTIONAL_PREFIX: &str = "OPTIONALS";
 
 pub struct Installer {
+    package_dir: String, 
+    program_dir: String
 }
 
 impl Installer {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(package_dir: String, program_dir: String) -> Self { 
+        Self { 
+            package_dir, 
+            program_dir 
+        } 
     }
 
     pub fn store_program_path(&self, path: &String) -> Result<(), io::Error> {
@@ -31,18 +38,51 @@ impl Installer {
         subkey.get_value("path")
     }
 
-    pub fn install(&self, contents: &mut ZipArchive<Cursor<Bytes>>, package_dir: &str, program_dir: &str, options: Features) -> Result<(), io::Error> {
+    fn get_path_for_file(&self, file_name: &str, options: &HashSet<String>) -> Option<String> {
+        // Program files
+        if !file_name.starts_with(COMMUNITY_PREFIX) {return Some(format!("{}\\{}", self.program_dir, file_name))}
+        // Community files
+        // Optionals/A32NXS/YourControls/SimObjects/Airplanes/Asobo_A320_NEO_STABLE/
+        let reduced_path = strip_path_beginning(file_name).unwrap();
+        // Core package files
+        if !reduced_path.starts_with(OPTIONAL_PREFIX) {return Some(format!("{}\\{}", self.package_dir, reduced_path))}
+        // A32NXS/YourControls/SimObjects/Airplanes/Asobo_A320_NEO_STABLE/
+        let optional_reduced_path = strip_path_beginning(&reduced_path).unwrap();
+            
+        // Handle optional package files
+        if let Some(optional_name) = get_path_beginning(&optional_reduced_path) {
+            // If the user specified the following option...
+            if options.contains(&optional_name) {
+                // YourControls/SimObjects/Airplanes/Asobo_A320_NEO_STABLE/
+                return Some(format!("{}\\{}", self.package_dir, strip_path_beginning(&optional_reduced_path).unwrap()));
+            }
+            
+        }
+
+        None
+    }
+
+    pub fn install(&self, contents: &mut ZipArchive<Cursor<Bytes>>, options: &Features) -> Result<(), io::Error> {
+        // Convert features to unique path names
+        let mut features = HashSet::new();
+        for option in options {
+            features.insert(option.path.clone());
+
+            info!("Requested feature \"{}\"", option.name);
+        }
         // Remove community package installation
-        fs::remove_dir_all(format!("{}\\YourControls", package_dir)).ok();
+        match fs::remove_dir_all(format!("{}\\YourControls", self.package_dir)) {
+            Ok(_) => info!("Removed existing package installation {}", self.package_dir),
+            Err(e) => warn!("Could not remove package installation, Reason: {}", e)
+        };
         // Overwrite installation 
         for i in 0..contents.len() {
             let mut file = contents.by_index(i).unwrap();
 
             // Determine whether community or program files
-            let path = if file.name().starts_with(COMMUNITY_PREFIX) {
-                format!("{}\\{}", package_dir, strip_path_beginning(file.name()).unwrap())
-            } else {
-                format!("{}\\{}", program_dir, file.name())
+            let path = match self.get_path_for_file(file.name(), &features) {
+                Some(path) => path,
+                None => continue
             };
 
             if file.is_dir() {
@@ -57,7 +97,10 @@ impl Installer {
             }
         }
 
-        self.store_program_path(&program_dir.to_string());
+        match self.store_program_path(&self.program_dir.to_string()) {
+            Ok(_) => info!("Wrote {} to registry.", self.program_dir),
+            Err(e) => warn!("Could not write to registry, Reason: {}", e)
+        }
 
         Ok(())
     }
