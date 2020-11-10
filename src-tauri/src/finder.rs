@@ -14,7 +14,7 @@ impl FlightSimFinder {
         match env::var(env_var) {
             Ok(path) => match File::open(format!("{}{}", path, post_path)) {
                 Ok(f) => return Ok(f),
-                Err(e) => return Err(Error::FileError(e))
+                Err(e) => return Err(Error::IOError(e))
             }
             Err(e) => return Err(Error::EnviornmentError(e))
         }
@@ -49,7 +49,7 @@ impl FlightSimFinder {
                         None => return Err(Error::MissingQuote)
                     };
 
-                    return Ok(line[first_quote + 1..closing_quote + 1].to_string())
+                    return Ok(line[first_quote + 1..closing_quote + 1].to_string() + "\\Community")
 
                 }
 

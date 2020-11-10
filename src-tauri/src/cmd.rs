@@ -1,10 +1,27 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum BrowseFor {
+    Program,
+    Package
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(tag = "cmd", rename_all = "camelCase")]
 pub enum Cmd {
-  // your custom commands
-  // multiple arguments are allowed
-  // note that rename_all = "camelCase": you need to use "myCustomCommand" on JS
-  MyCustomCommand { argument: String },
+    Browse {
+        callback: String,
+        error: String,
+        browse_for: BrowseFor
+    },
+    Startup {
+        callback: String,
+        error: String
+    },
+    Install {
+        callback: String,
+        error: String,
+        features: Vec<String>
+    }
 }

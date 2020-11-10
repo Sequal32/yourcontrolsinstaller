@@ -11,3 +11,5 @@ bundle.json
 
 cargo.lock
 rustfmt.toml
+
+*.txt

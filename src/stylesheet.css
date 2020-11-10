@@ -29,7 +29,7 @@
 
 .browse-button {
     position: absolute;
-    width: 10%;
+    width: 4%;
     height: 60%;
     text-align: center;
     right: 1%;
@@ -90,7 +90,7 @@
 }
 
 .install-button {
-    background-color: #373E4B;
+    background-color: #0069d9;
     border: 1px solid #373E4B;
     border-radius: 5px;
     margin: auto;

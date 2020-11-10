@@ -13,6 +13,7 @@ build = "src/build.rs"
 bytes = "0.5"
 chrono = "0.4"
 log = "0.4"
+nfd = "0.0.4"
 reqwest = { version = "0.10", features = [ "blocking", "json" ] }
 serde_json = "1.0"
 serde = { version = "1.0", features = [ "derive" ] }

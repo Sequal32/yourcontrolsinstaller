@@ -4,7 +4,7 @@ use bytes::Bytes;
 use log::{info, warn};
 use zip::ZipArchive;
 
-use crate::util::{Features, get_path_beginning, strip_path_beginning};
+use crate::util::{Error, Features, get_path_beginning, strip_path_beginning};
 
 const COMMUNITY_PREFIX: &str = "PLACE IN COMMUNITY PACKAGES";
 const OPTIONAL_PREFIX: &str = "OPTIONALS";
@@ -15,10 +15,10 @@ pub struct Installer {
 }
 
 impl Installer {
-    pub fn new(package_dir: String, program_dir: String) -> Self { 
+    pub fn new() -> Self { 
         Self { 
-            package_dir, 
-            program_dir 
+            package_dir: String::new(), 
+            program_dir: String::new()
         } 
     }
 
@@ -31,11 +31,19 @@ impl Installer {
         Ok(())
     }
 
-    pub fn get_program_path(&self) -> Result<String, io::Error> {
+    pub fn get_program_path_from_registry(&self) -> Result<String, io::Error> {
         let hklm = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
         let subkey = hklm.open_subkey("Software\\YourControls")?;
 
         subkey.get_value("path")
+    }
+
+    pub fn set_package_dir(&mut self, package_dir: String) {
+        self.package_dir = package_dir;
+    }
+
+    pub fn set_program_dir(&mut self, program_dir: String) {
+        self.program_dir = program_dir;
     }
 
     fn get_path_for_file(&self, file_name: &str, options: &HashSet<String>) -> Option<String> {
@@ -62,7 +70,7 @@ impl Installer {
         None
     }
 
-    pub fn install(&self, contents: &mut ZipArchive<Cursor<Bytes>>, options: &Features) -> Result<(), io::Error> {
+    pub fn install(&self, contents: &mut ZipArchive<Cursor<Bytes>>, options: &Features) -> Result<(), Error> {
         // Convert features to unique path names
         let mut features = HashSet::new();
         for option in options {
@@ -73,8 +81,15 @@ impl Installer {
         // Remove community package installation
         match fs::remove_dir_all(format!("{}\\YourControls", self.package_dir)) {
             Ok(_) => info!("Removed existing package installation {}", self.package_dir),
-            Err(e) => warn!("Could not remove package installation, Reason: {}", e)
+            Err(e) => {
+                warn!("Could not remove package installation, Reason: {}", e);
+            }
         };
+
+        // Create any directories that do not exist
+        fs::create_dir_all(self.package_dir.clone()).ok();
+        fs::create_dir_all(self.program_dir.clone()).ok();
+
         // Overwrite installation 
         for i in 0..contents.len() {
             let mut file = contents.by_index(i).unwrap();
@@ -99,7 +114,9 @@ impl Installer {
 
         match self.store_program_path(&self.program_dir.to_string()) {
             Ok(_) => info!("Wrote {} to registry.", self.program_dir),
-            Err(e) => warn!("Could not write to registry, Reason: {}", e)
+            Err(e) => {
+                warn!("Could not write to registry, Reason: {}", e);
+            }
         }
 
         Ok(())

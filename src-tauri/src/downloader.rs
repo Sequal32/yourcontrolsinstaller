@@ -1,20 +1,22 @@
-use std::{io::{Cursor}};
-
 use bytes::Bytes;
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime};
 use reqwest::{blocking::{Client, ClientBuilder}, header::{HeaderMap, HeaderValue}};
 use serde_json::Value;
+use serde::Serialize;
+use std::{io::{Cursor}};
 use zip::ZipArchive;
 
 use crate::util::{Error, Features};
 
-const LATEST_RELEASE_URL: &str = "https://api.github.com/repositories/290448187/releases/latest";
+// const LATEST_RELEASE_URL: &str = "https://api.github.com/repositories/290448187/releases/latest";
+const LATEST_RELEASE_URL: &str = "http://localhost:8000/release.json";
 const FEATURES_URL: &str = "http://localhost:8000/features.json";
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ReleaseData {
     pub download_url: String,
-    pub date: chrono::DateTime<FixedOffset>,
+    pub date: i64,
     pub description: String
 }
 
@@ -45,8 +47,8 @@ impl Downloader {
         let asset_data = data["assets"].as_array()?[0].as_object()?;
 
         let time = match DateTime::parse_from_rfc3339(asset_data["updated_at"].as_str()?) {
-            Ok(t) => t,
-            Err(e) => DateTime::from_utc(chrono::NaiveDateTime::from_timestamp(0, 0), FixedOffset::west(0))
+            Ok(t) => t.timestamp(),
+            Err(e) => 0
         };
 
         Some(
@@ -90,15 +92,10 @@ impl Downloader {
         };
 
         let cursor = Cursor::new(bytes);
-        let mut zip = match ZipArchive::new(cursor) {
+        let zip = match ZipArchive::new(cursor) {
             Ok(zip) => zip,
             Err(e) => return Err(Error::ZipError(e))
         };
-
-        for i in 0..zip.len() {
-            let file = zip.by_index(i).unwrap();
-            println!("{} {} {}", file.name(), file.is_dir(), file.size());
-        }
 
         Ok(zip)
     }

@@ -1,104 +1,9 @@
-import './App.css';
+import './stylesheet.css';
 import React from 'react';
 import { promisified, invoke } from 'tauri/api/tauri'
 
-class DirectoryEntry extends React.Component {
-    constructor(props) {
-        super(props)
-
-        this.state = {}
-        this.browsing = false
-    }
-
-    browseHover() {
-        document.body.style.cursor = "pointer"
-        this.setState({"hover": true})
-    }
-
-    browseLeave() {
-        document.body.style.cursor = "default"
-        this.setState({"hover": false})
-    }
-
-    browseClick() {
-        this.props.onBrowse()
-    }
-
-    render() {
-        return (
-            <div class="directory-div">
-                <p class="overtop-label">{this.props.title}</p>
-                <div class="directory-inner-div">
-                    <p class="directory-text">{this.props.location}</p>
-                    <img class="browse-button" src={this.state.hover ? "folder-open.svg" : "folder.svg"} onMouseEnter={this.browseHover.bind(this)} onMouseLeave={this.browseLeave.bind(this)} onMouseDown={this.browseClick.bind(this)}></img>
-                </div>
-            </div>
-        );
-    }
-}
-
-class FeatureEntry extends React.Component {
-    constructor(props) {
-        super(props)
-        this.state = {}
-    }
-
-    onHover() {
-        this.setState({"hover": true})
-    }
-
-    onLeave() {
-        this.setState({"hover": false})
-    }
-
-    onClick() {
-        this.setState({"checked": !this.state.checked})
-    }
-
-    isChecked() {
-        return this.state.checked
-    }
-
-    generateClassName() {
-        var classString = "custom-checkbox"
-        
-        if (this.state.hover) {
-            classString += " checkbox-hover"
-        }
-
-        return classString
-    }
-
-    render() {
-        return (
-            <div class="feature-div">
-                <div class={this.generateClassName()} onMouseEnter={this.onHover.bind(this)} onMouseLeave={this.onLeave.bind(this)} onMouseDown={this.onClick.bind(this)}>
-                    <img src="check.png" class="checkbox-image" hidden={this.state.checked}/>
-                </div>
-                <span class="feature-text">{this.props.name}</span>
-            </div>
-        )
-    };
-}
-
-class OptionalFeatures extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
-    render() {
-        return (
-            <div class="feature-list">
-                <h3 class="feature-list-text">
-                    Optional Features
-                </h3>
-                <div class="feature-list-grid">
-                    {this.props.featureList != null ? this.props.featureList.map((featureName) => <FeatureEntry name={featureName}/>) : []}
-                </div>
-            </div>
-        );
-    }
-}
+import DirectoryEntry from './components/DirectoryEntry'
+import OptionalFeatures from './components/FeatureList'
 
 class App extends React.Component {
     constructor(props) {
@@ -107,36 +12,76 @@ class App extends React.Component {
         this.state = {
             "programDirectory": "Unknown",
             "packageDirectory": "Unknown",
+            "browsing": false,
+            "installState": "wait"
         }
-        this.browsing = false
-
-        
+        this.selectedFeatures = null
     }
 
     componentDidMount() {
         promisified({
             "cmd": "startup"
         }).then((args) => {
+            console.log(args)
+
+            if (args.featureList !== null) {
+                args.featureList = args.featureList.map((feature) => feature["name"])
+            }
+
             this.setState(args)
         })
     }
 
+    featuresCallback(selectedFeatures) {
+        this.selectedFeatures = Array.from(selectedFeatures)
+        console.log(this.selectedFeatures)
+    }
+
     promptInstall() {
-        
+        if (this.state.installState != "wait" && this.state.installState != "done") {return}
+
+        this.setState({"installState": "install"})
+
+        promisified({
+            "cmd": "install",
+            "features": this.selectedFeatures
+        }).then((args) => {
+
+            this.setState({"installState": "done"})
+
+        }).catch(() => {
+
+            this.setState({"installState": "fail"})
+
+        })
     }
 
     onDirectoryBrowse(type) {
-        if (this.browsing) {return}
+        if (this.state.browsing) {return}
 
-        this.browsing = true
+        this.setState({"browsing": true})
 
         promisified({
-            "cmd": "browse"
+            "cmd": "browse",
+            "browse_for": type
         }).then((location) => {
             this.setState({[type + "Directory"]: location})
         }).finally(() => {
-            this.browsing = false
+            this.setState({"browsing": false})
         })
+    }
+
+    getInstallButtonText() {
+        switch (this.state.installState) {
+            case "wait":
+                return "Install"
+            case "install":
+                return "Installing..."
+            case "done":
+                return "Done!"
+            case "fail":
+                return "Failed!"
+        }
     }
 
     render() {
@@ -145,8 +90,8 @@ class App extends React.Component {
                   <img class="logo-image" src="logo.png"/>
                   <DirectoryEntry title="Installation Directory" location={this.state.programDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "program")}/>
                   <DirectoryEntry title="Community Packages Directory" location={this.state.packageDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "package")}/>
-                  <OptionalFeatures featureList={this.state.featureList}/>
-                  <button class="install-button" onClick={this.promptInstall}>Install</button>
+                  <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
+                  <button class="install-button" onClick={this.promptInstall.bind(this)}>{this.getInstallButtonText()}</button>
             </div>
         );
     }
