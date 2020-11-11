@@ -40,7 +40,7 @@ impl Downloader {
 
     fn get_json_data(&self) -> Result<Value, reqwest::Error> {
         let response = self.client.get(LATEST_RELEASE_URL).send()?;
-        response.json()
+        response.error_for_status()?.json()
     }
 
     fn parse_json_data(data: Value) -> Option<ReleaseData> {

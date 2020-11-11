@@ -16,8 +16,8 @@ use downloader::{Downloader, ReleaseData};
 use log::{error, info};
 use simplelog::{Config, LevelFilter, WriteLogger};
 use serde::Serialize;
+use tauri::api::dialog;
 use util::Feature;
-use nfd;
 
 #[derive(Debug)]
 struct CommandError {}
@@ -134,9 +134,9 @@ fn main() {
                     }
                     // DIrectory browse
                     Browse {browse_for, callback, error} => {
-                        let location = match nfd::open_pick_folder(None) {
-                            Ok(nfd::Response::Okay(location)) => {
-
+                        let location = match dialog::pick_folder(Option::<String>::None) {
+                            Ok(dialog::Response::Okay(location)) => {
+                                
                                 match browse_for {
                                     cmd::BrowseFor::Program => {
                                         installer.set_program_dir(location.clone())
