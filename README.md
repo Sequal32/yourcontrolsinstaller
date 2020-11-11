@@ -1,0 +1,2 @@
+# YourControls Installer
+An automated installer for the YourControls shared cockpit program for FS2020. Backend written in Rust, frontend written in React bridged together using Tauri. Handles both the installation of the program itself, and the community package with optional features for more complex aircraft defintions.

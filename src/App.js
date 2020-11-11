@@ -82,7 +82,7 @@ class App extends React.Component {
             this.setState({
                 currentDialog: {
                     title: "Installation Failed",
-                    description: errorMessage,
+                    description: errorMessage + "\n\nMore info available in Log.txt.",
                     buttonText: "OK",
                 },
                 dialogActive: true
