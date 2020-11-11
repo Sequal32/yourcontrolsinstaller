@@ -7,6 +7,7 @@ mod cmd;
 mod downloader;
 mod installer;
 mod finder;
+mod sizegenerator;
 mod util;
 
 use std::{env, fs::File};
@@ -112,7 +113,6 @@ fn main() {
             }
             Ok(command) => {
                 match command {
-                    // definitions for your custom commands from Cmd here
                     Startup {callback, error} => {
                         let default_install_path = default_install_path.clone();
                         let default_package_path = default_package_path.clone();
@@ -162,6 +162,7 @@ fn main() {
                     Install {callback, error, features} => {
                         let mut selected_features = Vec::new();
 
+                        // Match list of possible features with selected features
                         if let Some(possible_features) = feature_list.as_ref() {
                             for feature in possible_features {
                                 if features.contains(&feature.name) {
@@ -169,16 +170,20 @@ fn main() {
                                 }
                             }
                         }
-
+                        // Download and install
                         let result = match downloader.download_release() {
                             Ok(mut zip) => installer.install(&mut zip, &selected_features),
                             Err(e) => Err(e)
                         };
 
+                        // Return a result
                         tauri::execute_promise(_webview, || {
                             match result {
                                 Ok(_) => Ok(()),
-                                Err(e) => Err(e.into())
+                                Err(e) => {
+                                    error!("Installation failed! Reason: {}", e);
+                                    Err(e.into())
+                                }
                             }
                         }, callback, error);
                         
@@ -190,5 +195,4 @@ fn main() {
         })
         .build()
         .run();
-
 }

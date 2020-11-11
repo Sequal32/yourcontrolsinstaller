@@ -5,10 +5,11 @@ use serde::{Serialize, Deserialize};
 pub enum Error {
     EnviornmentError(std::env::VarError),
     IOError(std::io::Error),
-    MissingQuote,
-    WebError(reqwest::Error),
     JsonError,
+    JsonSerializationError(serde_json::Error),
+    MissingQuote,
     ReleaseError,
+    WebError(reqwest::Error),
     ZipError(zip::result::ZipError),
 }
 
@@ -20,6 +21,7 @@ impl Display for Error {
             Error::MissingQuote => write!(f, "Could not find quote in path while looking for packages."),
             Error::WebError(e) => write!(f, "Error sending web request. Reason: {}", e),
             Error::JsonError => write!(f, "Missing field in JSON."),
+            Error::JsonSerializationError(e) => write!(f, "Error processing JSON data. Reason: {}", e),
             Error::ReleaseError => write!(f, "Could not fetch release data."),
             Error::ZipError(e) => write!(f, "Could not read release ZIP file. Reason: {}", e),
             Error::IOError(e) => write!(f, "An IO error occured. Error: {}", e),
