@@ -31,11 +31,6 @@ class App extends React.Component {
         promisified({
             cmd: "startup"
         }).then((args) => {
-
-            if (args.featureList !== null) {
-                args.featureList = args.featureList.map((feature) => feature["name"])
-            }
-            
             if (args.releaseData !== null) {
                 const date = new Date(args.releaseData.date * 1000)
 

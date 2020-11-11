@@ -32,7 +32,8 @@ impl Display for Error {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Feature {
     pub name: String,
-    pub path: String
+    pub path: String,
+    pub group: Option<String>
 }
 
 pub type Features = Vec<Feature>;

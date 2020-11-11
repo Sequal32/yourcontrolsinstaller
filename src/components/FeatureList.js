@@ -4,7 +4,7 @@ import '../stylesheet.css';
 class FeatureEntry extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {"checked": false}
+        this.state = {"hover": false}
     }
 
     onHover() {
@@ -16,11 +16,8 @@ class FeatureEntry extends React.Component {
     }
 
     onClick() {
-        const newValue = !this.state.checked
-        this.setState({"checked": newValue})
-
         if (this.props.callback) {
-            this.props.callback(newValue)
+            this.props.callback()
         }
     }
 
@@ -38,7 +35,7 @@ class FeatureEntry extends React.Component {
         return (
             <div class="feature-div">
                 <div class={this.generateClassName()} onMouseEnter={this.onHover.bind(this)} onMouseLeave={this.onLeave.bind(this)} onMouseDown={this.onClick.bind(this)} checked={this.state.checked}>
-                    <img src="check.png" class="checkbox-image" hidden={!this.state.checked}/>
+                    <img src="check.png" class="checkbox-image" hidden={!this.props.checked}/>
                 </div>
                 <span class="feature-text">{this.props.name}</span>
             </div>
@@ -50,28 +47,47 @@ class OptionalFeatures extends React.Component {
     constructor(props) {
         super(props)
         
-        this.features = []
+        this.groupMap = {}
         this.selectedFeatures = new Set()
     }
 
-    componentDidUpdate() {
-        this.selectedFeatures.clear()
+    componentDidUpdate(prevProps) {
+        if (prevProps.features != this.props.features) {
+            this.selectedFeatures.clear()
+            this.groupMap.clear()
+        }
     }
 
-    selectFeature(featureName, selected) {
-        if (selected) {
-            this.selectedFeatures.add(featureName)
-        } else {
+    selectFeature(featureName, featureGroup) {
+        if (this.selectedFeatures.has(featureName)) {
+
             this.selectedFeatures.delete(featureName)
+
+        } else {
+
+            // Make sure only one from each group gets selected
+            if (featureGroup) {
+                const groupSelectedFeature = this.groupMap[featureGroup]
+                // Remove the other selected feature from the group
+                if (groupSelectedFeature) {
+                    this.selectedFeatures.delete(groupSelectedFeature)
+                }
+                // Insert the new selected feature into the group
+                this.groupMap[featureGroup] = featureName
+            }
+            
+            this.selectedFeatures.add(featureName)
         }
 
         if (this.props.callback) {
             this.props.callback(this.selectedFeatures)
         }
+
+        this.forceUpdate()
     }
 
     render() {
-        this.features = this.props.featureList != null ? this.props.featureList.map((featureName) => <FeatureEntry name={featureName} callback={this.selectFeature.bind(this, featureName)}/>) : []
+        this.features = this.props.featureList != null ? this.props.featureList.map((feature) => <FeatureEntry name={feature.name} callback={this.selectFeature.bind(this, feature.name, feature.group)} checked={this.selectedFeatures.has(feature.name)}/>) : []
 
         return (
             <div class="feature-list">
