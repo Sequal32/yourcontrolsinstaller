@@ -17,7 +17,7 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gec
 pub struct ReleaseData {
     pub download_url: String,
     pub date: i64,
-    pub description: String
+    pub name: String
 }
 
 pub struct Downloader {
@@ -52,7 +52,7 @@ impl Downloader {
             ReleaseData {
                 download_url: asset_data["browser_download_url"].as_str()?.to_string(),
                 date: time,
-                description: data["body"].as_str()?.to_string(),
+                name: data["name"].as_str()?.to_string(),
             }
         )
     }

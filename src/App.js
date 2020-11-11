@@ -2,31 +2,53 @@ import './stylesheet.css';
 import React from 'react';
 import { promisified, invoke } from 'tauri/api/tauri'
 
+import Dialog from './components/Dialog'
 import DirectoryEntry from './components/DirectoryEntry'
 import OptionalFeatures from './components/FeatureList'
+import Overlay from './components/Overlay'
 
 class App extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            "programDirectory": "Unknown",
-            "packageDirectory": "Unknown",
-            "browsing": false,
-            "installState": "wait"
+            programDirectory: "Unknown",
+            packageDirectory: "Unknown",
+            browsing: false,
+            installing: false,
+            
+            currentDialog: {
+                title: "",
+                description: "",
+                buttonText: "",
+            },
+            dialogActive: false
         }
-        this.selectedFeatures = null
+        this.selectedFeatures = []
     }
 
     componentDidMount() {
         promisified({
-            "cmd": "startup"
+            cmd: "startup"
         }).then((args) => {
-            console.log(args)
 
             if (args.featureList !== null) {
                 args.featureList = args.featureList.map((feature) => feature["name"])
             }
+            
+            if (args.releaseData !== null) {
+                const date = new Date(args.releaseData.date * 1000)
+
+                this.setState({
+                    currentDialog: {
+                        title: args.releaseData.name,
+                        description: `Released on ${date.toDateString()}`,
+                        buttonText: "OK",
+                    },
+                    dialogActive: true
+                })
+            }
+            
 
             this.setState(args)
         })
@@ -34,54 +56,60 @@ class App extends React.Component {
 
     featuresCallback(selectedFeatures) {
         this.selectedFeatures = Array.from(selectedFeatures)
-        console.log(this.selectedFeatures)
     }
 
     promptInstall() {
-        if (this.state.installState != "wait" && this.state.installState != "done") {return}
+        if (this.state.installing) {return}
 
-        this.setState({"installState": "install"})
+        this.setState({"installing": true})
 
         promisified({
-            "cmd": "install",
-            "features": this.selectedFeatures
-        }).then((args) => {
+            cmd: "install",
+            features: this.selectedFeatures
+        }).then(() => {
 
-            this.setState({"installState": "done"})
+            this.setState({
+                currentDialog: {
+                    title: "Installation Successful",
+                    description: "The program has been successfully installed. Get flying!",
+                    buttonText: "OK"
+                },
+                dialogActive: true
+            })
 
-        }).catch(() => {
+        }).catch((errorMessage) => {
 
-            this.setState({"installState": "fail"})
+            this.setState({
+                currentDialog: {
+                    title: "Installation Failed",
+                    description: errorMessage,
+                    buttonText: "OK",
+                },
+                dialogActive: true
+            })
 
+        }).finally(() => {
+            this.setState({installing: false})
         })
     }
 
     onDirectoryBrowse(type) {
         if (this.state.browsing) {return}
 
-        this.setState({"browsing": true})
+        this.setState({browsing: true})
 
         promisified({
-            "cmd": "browse",
-            "browse_for": type
+            cmd: "browse",
+            browse_for: type
         }).then((location) => {
             this.setState({[type + "Directory"]: location})
         }).finally(() => {
-            this.setState({"browsing": false})
+            this.setState({browsing: false})
         })
     }
 
-    getInstallButtonText() {
-        switch (this.state.installState) {
-            case "wait":
-                return "Install"
-            case "install":
-                return "Installing..."
-            case "done":
-                return "Done!"
-            case "fail":
-                return "Failed!"
-        }
+    dialogButtonClicked() {
+        this.setState({dialogActive: false})
     }
 
     render() {
@@ -91,7 +119,9 @@ class App extends React.Component {
                   <DirectoryEntry title="Installation Directory" location={this.state.programDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "program")}/>
                   <DirectoryEntry title="Community Packages Directory" location={this.state.packageDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "package")}/>
                   <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
-                  <button class="install-button" onClick={this.promptInstall.bind(this)}>{this.getInstallButtonText()}</button>
+                  <button class="install-button" onClick={this.promptInstall.bind(this)}>{this.state.installing ? "Installing" : "Install"}</button>
+                  <Overlay hidden={this.state.dialogActive}/>
+                  <Dialog hidden={this.state.dialogActive} title={this.state.currentDialog.title} description={this.state.currentDialog.description} buttonText={this.state.currentDialog.buttonText} callback={this.dialogButtonClicked.bind(this)}/>
             </div>
         );
     }
