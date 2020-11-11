@@ -36,7 +36,7 @@ class App extends React.Component {
 
                 this.setState({
                     currentDialog: {
-                        title: args.releaseData.name,
+                        title: "Release " + args.releaseData.tagName,
                         description: `Released on ${date.toDateString()}`,
                         buttonText: "OK",
                     },

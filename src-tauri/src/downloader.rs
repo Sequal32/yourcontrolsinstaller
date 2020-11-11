@@ -6,10 +6,7 @@ use zip::ZipArchive;
 
 use crate::util::{Error, Features};
 
-// const LATEST_RELEASE_URL: &str = "https://api.github.com/repositories/290448187/releases/latest";
-const LATEST_RELEASE_URL: &str = "http://localhost:8000/release.json";
-const FEATURES_URL: &str = "http://localhost:8000/features.json";
-
+const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/sequal32/yourcontrols/releases/latest";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0";
 
 #[derive(Debug, Clone, Serialize)]
@@ -17,7 +14,7 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gec
 pub struct ReleaseData {
     pub download_url: String,
     pub date: i64,
-    pub name: String
+    pub tag_name: String
 }
 
 pub struct Downloader {
@@ -52,7 +49,7 @@ impl Downloader {
             ReleaseData {
                 download_url: asset_data["browser_download_url"].as_str()?.to_string(),
                 date: time,
-                name: data["name"].as_str()?.to_string(),
+                tag_name: data["tag_name"].as_str()?.to_string(),
             }
         )
     }
@@ -98,7 +95,12 @@ impl Downloader {
     }
 
     pub fn get_features(&self) -> Result<Features, Error> {
-        let response = match self.get_url(FEATURES_URL) {
+        let tag_name = match self.latest_release.as_ref() {
+            Some(d) => &d.tag_name,
+            None => return Err(Error::ReleaseError)
+        };
+
+        let response = match self.get_url(&format!("https://raw.githubusercontent.com/Sequal32/yourcontrols/{}/features.json", tag_name)) {
             Ok(response) => response,
             Err(e) => return Err(Error::WebError(e))
         };

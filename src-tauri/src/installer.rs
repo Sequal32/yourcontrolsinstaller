@@ -125,7 +125,9 @@ impl Installer {
                     format!("{}\\{}", self.program_dir, relative_path)
                 }
             };
+            
             // Write dir
+            info!("Writing {}", full_path);
             if file.is_dir() {
 
                 fs::create_dir(full_path).ok();
