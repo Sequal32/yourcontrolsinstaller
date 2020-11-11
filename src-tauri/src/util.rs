@@ -9,7 +9,7 @@ pub enum Error {
     JsonSerializationError(serde_json::Error),
     MissingQuote,
     ReleaseError,
-    WebError(reqwest::Error),
+    WebError(attohttpc::Error),
     ZipError(zip::result::ZipError),
 }
 

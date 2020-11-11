@@ -1,6 +1,4 @@
-use bytes::Bytes;
 use chrono::{DateTime};
-use reqwest::{blocking::{Client, ClientBuilder}, header::{HeaderMap, HeaderValue}};
 use serde_json::Value;
 use serde::Serialize;
 use std::{io::{Cursor}};
@@ -12,6 +10,8 @@ use crate::util::{Error, Features};
 const LATEST_RELEASE_URL: &str = "http://localhost:8000/release.json";
 const FEATURES_URL: &str = "http://localhost:8000/features.json";
 
+const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0";
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReleaseData {
@@ -21,25 +21,22 @@ pub struct ReleaseData {
 }
 
 pub struct Downloader {
-    latest_release: Option<ReleaseData>,
-    client: Client
+    latest_release: Option<ReleaseData>
 }
 
 impl Downloader {
     pub fn new() -> Self {
-        let mut headers = HeaderMap::new();
-        headers.insert("User-Agent", HeaderValue::from_str("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0").unwrap());
-        
-        let client = ClientBuilder::new().default_headers(headers).build().unwrap();
-
         Self {
             latest_release: None,
-            client
         }
     }
 
-    fn get_json_data(&self) -> Result<Value, reqwest::Error> {
-        let response = self.client.get(LATEST_RELEASE_URL).send()?;
+    fn get_url(&self, url: &str) -> Result<attohttpc::Response, attohttpc::Error> {
+        attohttpc::get(url).header("User-Agent", USER_AGENT).send()
+    }
+
+    fn get_json_data(&self) -> Result<Value, attohttpc::Error> {
+        let response = self.get_url(LATEST_RELEASE_URL)?;
         response.error_for_status()?.json()
     }
 
@@ -80,13 +77,13 @@ impl Downloader {
         Ok(self.latest_release.as_ref())
     }
 
-    pub fn download_release(&self) -> Result<ZipArchive<Cursor<Bytes>>, Error> {
+    pub fn download_release(&self) -> Result<ZipArchive<Cursor<Vec<u8>>>, Error> {
         let release_url = match self.latest_release.as_ref() {
             Some(release) => &release.download_url,
             None => return Err(Error::ReleaseError)
         };
 
-        let bytes = match self.client.get(release_url).send() {
+        let bytes = match self.get_url(release_url) {
             Ok(response) => response.bytes().unwrap(),
             Err(e) => return Err(Error::WebError(e))
         };
@@ -101,7 +98,7 @@ impl Downloader {
     }
 
     pub fn get_features(&self) -> Result<Features, Error> {
-        let response = match self.client.get(FEATURES_URL).send() {
+        let response = match self.get_url(FEATURES_URL) {
             Ok(response) => response,
             Err(e) => return Err(Error::WebError(e))
         };

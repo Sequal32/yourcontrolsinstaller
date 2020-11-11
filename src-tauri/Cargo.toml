@@ -1,19 +1,18 @@
 [package]
-name = "yourcontrollinstaller"
+name = "yourcontrolsinstaller"
 version = "1.0.0"
 description = "An automated installer to install YourControls."
 authors = [ "Sequal32" ]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/Sequal32/yourcontrolsinstaller"
-default-run = "yourcontrollinstaller"
+default-run = "installer"
 edition = "2018"
 build = "src/build.rs"
 
 [dependencies]
-bytes = "0.5"
+attohttpc = {version = "0.16", features = ["json"]}
 chrono = "0.4"
 log = "0.4"
-reqwest = { version = "0.10", features = [ "blocking", "json" ] }
 serde_json = "1.0"
 serde = { version = "1.0", features = [ "derive" ] }
 simplelog = "0.8"
@@ -29,12 +28,5 @@ embedded-server = [ "tauri/embedded-server" ]
 no-server = [ "tauri/no-server" ]
 
 [[bin]]
-name = "yourcontrollinstaller"
+name = "installer"
 path = "src/main.rs"
-
-[profile.release]
-panic = "abort"
-codegen-units = 1
-lto = true
-incremental = false
-opt-level = "z"

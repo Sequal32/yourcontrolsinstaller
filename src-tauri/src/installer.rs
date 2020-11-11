@@ -1,6 +1,4 @@
 use std::{collections::HashSet, fs, io::{self, Cursor}};
-
-use bytes::Bytes;
 use log::{error, info, warn};
 use zip::ZipArchive;
 
@@ -75,7 +73,7 @@ impl Installer {
         None
     }
 
-    pub fn install(&self, contents: &mut ZipArchive<Cursor<Bytes>>, options: &Features) -> Result<(), Error> {
+    pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, options: &Features) -> Result<(), Error> {
         // Convert features to unique path names
         let mut features = HashSet::new();
         for option in options {
