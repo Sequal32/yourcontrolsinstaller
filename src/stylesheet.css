@@ -60,6 +60,7 @@
 
 .feature-list {
     margin: auto;
+    margin-bottom: 50px;
     width: 95%;
     height: 170px;
 }
@@ -71,10 +72,17 @@
     color: white;
 }
 
-.feature-list-text {
+.feature-list h3 {
     font-size: 36px;
     margin: auto;
     color: white;
+}
+
+.feature-list p {
+    font-size: 85%;
+    color: whitesmoke;
+    margin: 0px;
+    margin-bottom: 5px;
 }
 
 .feature-list-grid {
@@ -90,6 +98,8 @@
 }
 
 .install-button, .dialog-button {
+    font-family: inherit;
+    font-weight: 600;
     background-color: #0069d9;
     border: 0px;
     border-radius: 5px;
@@ -104,6 +114,10 @@
 
 .install-button:active {
     background-color: #005fc4;
+}
+
+.install-button:disabled {
+    background-color: #20232A;
 }
 
 .overlay {

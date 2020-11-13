@@ -32,8 +32,8 @@ impl Display for CommandError {
 #[serde(rename_all = "camelCase")]
 struct StartupResponse {
     feature_list: Option<Vec<Feature>>,
-    package_directory: Option<String>,
-    program_directory: Option<String>,
+    package_directory: String,
+    program_directory: String,
     release_data: Option<ReleaseData>
 }
 
@@ -59,38 +59,37 @@ fn main() {
     let default_install_path = match installer.get_program_path_from_registry() {
         Ok(path) => {
             info!("Found previous installation path.");
-            Some(path)
+            path
         },
         Err(_) => match env::var("APPDATA") {
             Ok(path) => {
                 info!("Using default installation path.");
-                Some(path + "\\YourControls")
+                path + "\\YourControls"
             },
             Err(e) => {
                 error!("Could not use any installation path. Reason: {}", e);
-                None
+                "YourControls".to_string()
             }
         }
     };
 
-    if let Some(path) = default_install_path.as_ref() {
-        info!("Installation path: {}", path);
-        installer.set_program_dir(path.clone());
-    }
-
+    info!("Installation path: {}", default_install_path);
+    installer.set_program_dir(default_install_path.clone());
+    //
     let default_package_path = match finder::FlightSimFinder::get_package_location() {
         Ok(path) => {
             info!("Found package location: {}", path);
 
-            installer.set_package_dir(path.clone());
-            Some(path)
+            path
         },
         Err(e) => {
             error!("Could not find any installation path. Reason: {}", e);
-            None
+            "Community\\YourControls".to_string()
         }
     };
 
+    installer.set_package_dir(default_package_path.clone());
+    //
     let feature_list = match downloader.get_features() {
         Ok(list) => {
             info!("Fetched {} features.", list.len());
@@ -135,10 +134,11 @@ fn main() {
                     // DIrectory browse
                     Browse {browse_for, callback, error} => {
                         let location = match dialog::pick_folder(Option::<String>::None) {
-                            Ok(dialog::Response::Okay(location)) => {
+                            Ok(dialog::Response::Okay(mut location)) => {
                                 
                                 match browse_for {
                                     cmd::BrowseFor::Program => {
+                                        location += "\\YourControls";
                                         installer.set_program_dir(location.clone())
                                     }
                                     cmd::BrowseFor::Package => {
