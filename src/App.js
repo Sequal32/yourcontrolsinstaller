@@ -114,7 +114,7 @@ class App extends React.Component {
                   <DirectoryEntry title="Installation Directory" location={this.state.programDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "program")}/>
                   <DirectoryEntry title="Community Packages Directory" location={this.state.packageDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "package")}/>
                   <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
-                  <button class="install-button" onClick={this.promptInstall.bind(this)}>{this.state.installing ? "Installing" : "Install"}</button>
+                  <button class="install-button" onClick={this.promptInstall.bind(this)}>{this.state.installing ? "Installing..." : "Install"}</button>
                   <Overlay hidden={this.state.dialogActive}/>
                   <Dialog hidden={this.state.dialogActive} title={this.state.currentDialog.title} description={this.state.currentDialog.description} buttonText={this.state.currentDialog.buttonText} callback={this.dialogButtonClicked.bind(this)}/>
             </div>

@@ -100,7 +100,7 @@ impl Downloader {
             None => return Err(Error::ReleaseError)
         };
 
-        let response = match self.get_url(&format!("https://raw.githubusercontent.com/Sequal32/yourcontrols/{}/features.json", tag_name)) {
+        let response = match self.get_url(&format!("https://raw.githubusercontent.com/Sequal32/yourcontrols/{}/definitions/features.json", tag_name)) {
             Ok(response) => response,
             Err(e) => return Err(Error::WebError(e))
         };

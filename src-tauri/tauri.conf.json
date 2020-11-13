@@ -1,6 +1,6 @@
 {
   "build": {
-    "distDir": "../build",
+    "distDir": "../yes",
     "devPath": "http://localhost:3000",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
@@ -8,7 +8,7 @@
   "ctx": {},
   "tauri": {
     "embeddedServer": {
-      "active": true
+      "active": false
     },
     "bundle": {
       "active": false,
