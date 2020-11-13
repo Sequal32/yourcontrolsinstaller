@@ -7,12 +7,12 @@ use zip::ZipArchive;
 use crate::util::{Error, Features};
 
 const LATEST_RELEASE_URL: &str = "https://api.github.com/repos/sequal32/yourcontrols/releases/latest";
+const RELEASE_BASE_URL: &str = "https://github.com/Sequal32/yourcontrols/releases/download/vbase/sharedcockpit.zip";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReleaseData {
-    pub download_url: String,
     pub date: i64,
     pub tag_name: String
 }
@@ -47,7 +47,6 @@ impl Downloader {
 
         Some(
             ReleaseData {
-                download_url: asset_data["browser_download_url"].as_str()?.to_string(),
                 date: time,
                 tag_name: data["tag_name"].as_str()?.to_string(),
             }
@@ -75,12 +74,7 @@ impl Downloader {
     }
 
     pub fn download_release(&self) -> Result<ZipArchive<Cursor<Vec<u8>>>, Error> {
-        let release_url = match self.latest_release.as_ref() {
-            Some(release) => &release.download_url,
-            None => return Err(Error::ReleaseError)
-        };
-
-        let bytes = match self.get_url(release_url) {
+        let bytes = match self.get_url(RELEASE_BASE_URL) {
             Ok(response) => response.bytes().unwrap(),
             Err(e) => return Err(Error::WebError(e))
         };
