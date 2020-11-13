@@ -1,0 +1,300 @@
+<!DOCTYPE html><html lang="en"><head><script>// polyfills
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function (searchString, position) {
+    position = position || 0
+    return this.substr(position, searchString.length) === searchString
+  }
+}
+
+;(function () {
+  function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1)
+  }
+
+  var uid = function () {
+    return (
+      s4() +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      '-' +
+      s4() +
+      s4() +
+      s4()
+    )
+  }
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object)
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object)
+      if (enumerableOnly)
+        symbols = symbols.filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(object, sym).enumerable
+        })
+      keys.push.apply(keys, symbols)
+    }
+    return keys
+  }
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {}
+      if (i % 2) {
+        ownKeys(source, true).forEach(function (key) {
+          _defineProperty(target, key, source[key])
+        })
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(
+          target,
+          Object.getOwnPropertyDescriptors(source)
+        )
+      } else {
+        ownKeys(source).forEach(function (key) {
+          Object.defineProperty(
+            target,
+            key,
+            Object.getOwnPropertyDescriptor(source, key)
+          )
+        })
+      }
+    }
+    return target
+  }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      })
+    } else {
+      obj[key] = value
+    }
+    return obj
+  }
+
+  if (!window.__TAURI__) {
+    window.__TAURI__ = {}
+  }
+
+  window.__TAURI__.transformCallback = function transformCallback(
+    callback,
+    once
+  ) {
+    var identifier = uid()
+
+    window[identifier] = function (result) {
+      if (once) {
+        delete window[identifier]
+      }
+
+      return callback && callback(result)
+    }
+
+    return identifier
+  }
+
+  window.__TAURI__.promisified = function promisified(args) {
+    var _this = this
+
+    return new Promise(function (resolve, reject) {
+      var callback = _this.transformCallback(function (r) {
+        resolve(r)
+        delete window[error]
+      }, true)
+      var error = _this.transformCallback(function (e) {
+        reject(e)
+        delete window[callback]
+      }, true)
+
+      window.__TAURI_INVOKE_HANDLER__(
+        _objectSpread(
+          {
+            callback: callback,
+            error: error
+          },
+          args
+        )
+      )
+    })
+  }
+
+  window.__TAURI__.loadAsset = function loadAsset(assetName, assetType) {
+    return this.promisified({
+      cmd: 'loadAsset',
+      asset: assetName,
+      assetType: assetType || 'unknown'
+    })
+  }
+
+  document.addEventListener(
+    'error',
+    function (e) {
+      var target = e.target
+      while (target != null) {
+        if (
+          target.matches
+            ? target.matches('img')
+            : target.msMatchesSelector('img')
+        ) {
+          window.__TAURI__.loadAsset(target.src, 'image').then(function (img) {
+            target.src = img
+          })
+          break
+        }
+        target = target.parentElement
+      }
+    },
+    true
+  )
+
+  // open <a href="..."> links with the Tauri API
+  function __openLinks() {
+    document.querySelector('body').addEventListener(
+      'click',
+      function (e) {
+        var target = e.target
+        while (target != null) {
+          if (
+            target.matches ? target.matches('a') : target.msMatchesSelector('a')
+          ) {
+            if (
+              target.href &&
+              target.href.startsWith('http') &&
+              target.target === '_blank'
+            ) {
+              window.__TAURI_INVOKE_HANDLER__({
+                cmd: 'open',
+                uri: target.href
+              })
+              e.preventDefault()
+            }
+            break
+          }
+          target = target.parentElement
+        }
+      },
+      true
+    )
+  }
+
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
+    __openLinks()
+  } else {
+    window.addEventListener(
+      'DOMContentLoaded',
+      function () {
+        __openLinks()
+      },
+      true
+    )
+  }
+
+  let permissionSettable = false
+  let permissionValue = 'default'
+
+  function isPermissionGranted() {
+    if (window.Notification.permission !== 'default') {
+      return Promise.resolve(window.Notification.permission === 'granted')
+    }
+    return window.__TAURI__.promisified({
+      cmd: 'isNotificationPermissionGranted'
+    })
+  }
+
+  function setNotificationPermission(value) {
+    permissionSettable = true
+    window.Notification.permission = value
+    permissionSettable = false
+  }
+
+  function requestPermission() {
+    return window.__TAURI__
+      .promisified({
+        cmd: 'requestNotificationPermission'
+      })
+      .then(function (permission) {
+        setNotificationPermission(permission)
+        return permission
+      })
+  }
+
+  function sendNotification(options) {
+    if (typeof options === 'object') {
+      Object.freeze(options)
+    }
+
+    isPermissionGranted().then(function (permission) {
+      if (permission) {
+        return window.__TAURI__.promisified({
+          cmd: 'notification',
+          options:
+            typeof options === 'string'
+              ? {
+                  title: options
+                }
+              : options
+        })
+      }
+    })
+  }
+
+  window.Notification = function (title, options) {
+    var opts = options || {}
+    sendNotification(
+      Object.assign(opts, {
+        title: title
+      })
+    )
+  }
+
+  window.Notification.requestPermission = requestPermission
+
+  Object.defineProperty(window.Notification, 'permission', {
+    enumerable: true,
+    get: function () {
+      return permissionValue
+    },
+    set: function (v) {
+      if (!permissionSettable) {
+        throw new Error('Readonly property')
+      }
+      permissionValue = v
+    }
+  })
+
+  isPermissionGranted().then(function (response) {
+    if (response === null) {
+      setNotificationPermission('default')
+    } else {
+      setNotificationPermission(response ? 'granted' : 'denied')
+    }
+  })
+
+  window.alert = function (message) {
+    window.__TAURI_INVOKE_HANDLER__({
+      cmd: 'messageDialog',
+      message: message
+    })
+  }
+
+  window.confirm = function (message) {
+    return window.__TAURI__.promisified({
+      cmd: 'askDialog',
+      message: message
+    })
+  }
+})()
+</script><meta charset="utf-8"><link rel="icon" href="/favicon.ico"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><meta name="description" content="Web site created using create-react-app"><link rel="apple-touch-icon" href="/logo192.png"><link rel="manifest" href="/manifest.json"><title>React App</title><link href="/static/css/main.4b9bb47a.chunk.css" rel="stylesheet"><meta http-equiv="Content-Security-Policy" content="default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><script src="https://cdnjs.cloudflare.com/ajax/libs/web-animations/2.2.1/web-animations-next.min.js"></script><div id="root"></div><script>!function(e){function r(r){for(var n,a,i=r[0],l=r[1],c=r[2],s=0,p=[];s<i.length;s++)a=i[s],Object.prototype.hasOwnProperty.call(o,a)&&o[a]&&p.push(o[a][0]),o[a]=0;for(n in l)Object.prototype.hasOwnProperty.call(l,n)&&(e[n]=l[n]);for(f&&f(r);p.length;)p.shift()();return u.push.apply(u,c||[]),t()}function t(){for(var e,r=0;r<u.length;r++){for(var t=u[r],n=!0,i=1;i<t.length;i++){var l=t[i];0!==o[l]&&(n=!1)}n&&(u.splice(r--,1),e=a(a.s=t[0]))}return e}var n={},o={1:0},u=[];function a(r){if(n[r])return n[r].exports;var t=n[r]={i:r,l:!1,exports:{}};return e[r].call(t.exports,t,t.exports,a),t.l=!0,t.exports}a.e=function(e){var r=[],t=o[e];if(0!==t)if(t)r.push(t[2]);else{var n=new Promise((function(r,n){t=o[e]=[r,n]}));r.push(t[2]=n);var u,i=document.createElement("script");i.charset="utf-8",i.timeout=120,a.nc&&i.setAttribute("nonce",a.nc),i.src=function(e){return a.p+"static/js/"+({}[e]||e)+"."+{3:"a9097691"}[e]+".chunk.js"}(e);var l=new Error;u=function(r){i.onerror=i.onload=null,clearTimeout(c);var t=o[e];if(0!==t){if(t){var n=r&&("load"===r.type?"missing":r.type),u=r&&r.target&&r.target.src;l.message="Loading chunk "+e+" failed.\n("+n+": "+u+")",l.name="ChunkLoadError",l.type=n,l.request=u,t[1](l)}o[e]=void 0}};var c=setTimeout((function(){u({type:"timeout",target:i})}),12e4);i.onerror=i.onload=u,document.head.appendChild(i)}return Promise.all(r)},a.m=e,a.c=n,a.d=function(e,r,t){a.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:t})},a.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},a.t=function(e,r){if(1&r&&(e=a(e)),8&r)return e;if(4&r&&"object"==typeof e&&e&&e.__esModule)return e;var t=Object.create(null);if(a.r(t),Object.defineProperty(t,"default",{enumerable:!0,value:e}),2&r&&"string"!=typeof e)for(var n in e)a.d(t,n,function(r){return e[r]}.bind(null,n));return t},a.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(r,"a",r),r},a.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},a.p="/",a.oe=function(e){throw console.error(e),e};var i=this.webpackJsonpyourcontrolinstaller=this.webpackJsonpyourcontrolinstaller||[],l=i.push.bind(i);i.push=r,i=i.slice();for(var c=0;c<i.length;c++)r(i[c]);var f=l;t()}([])</script><script src="/static/js/2.fa9b2967.chunk.js"></script><script src="/static/js/main.d57226e6.chunk.js"></script></body></html>
