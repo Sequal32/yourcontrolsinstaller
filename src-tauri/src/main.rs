@@ -188,6 +188,17 @@ fn main() {
                         }, callback, error);
                         
                     }
+
+                    Uninstall {callback, error} => {
+                        let result = installer.remove_package();
+
+                        tauri::execute_promise(_webview, || {
+                            match result {
+                                Ok(_) => Ok(()),
+                                Err(e) => Err(e.into())
+                            }
+                        }, callback, error);
+                    }
                 }
                 Ok(())
             }

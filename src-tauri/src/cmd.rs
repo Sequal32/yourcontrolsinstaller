@@ -23,5 +23,9 @@ pub enum Cmd {
         callback: String,
         error: String,
         features: Vec<String>
+    },
+    Uninstall {
+        callback: String,
+        error: String,
     }
 }

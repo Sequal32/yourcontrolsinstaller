@@ -13,7 +13,7 @@ export default class Dialog extends React.Component {
             <div class="dialog-div" style={this.props.hidden ? {"top": "25%"} : {"top": "-50%"}}>
                 <h1>{this.props.title}</h1>
                 <p>{this.props.description}</p>
-                <button class="dialog-button" onClick={this.onAcknowledge.bind(this)}>{this.props.buttonText}</button>
+                <button class="generic-button dialog-button" onClick={this.onAcknowledge.bind(this)}>{this.props.buttonText}</button>
             </div>
         )
     }

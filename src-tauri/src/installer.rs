@@ -73,6 +73,19 @@ impl Installer {
         None
     }
 
+    pub fn remove_package(&self) -> Result<(), io::Error> {
+        match fs::remove_dir_all(format!("{}\\YourControls", self.package_dir)) {
+            Ok(_) => {
+                info!("Removed existing package installation {}", self.package_dir);
+                Ok(())
+            },
+            Err(e) => {
+                warn!("Could not remove package installation, Reason: {}", e);
+                Err(e)
+            }
+        }
+    }
+
     pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, options: &Features) -> Result<(), Error> {
         // Convert features to unique path names
         let mut features = HashSet::new();
@@ -82,12 +95,7 @@ impl Installer {
             info!("Requested feature \"{}\"", option.name);
         }
         // Remove community package installation
-        match fs::remove_dir_all(format!("{}\\YourControls", self.package_dir)) {
-            Ok(_) => info!("Removed existing package installation {}", self.package_dir),
-            Err(e) => {
-                warn!("Could not remove package installation, Reason: {}", e);
-            }
-        };
+        self.remove_package();
 
         // Create any directories that do not exist
         fs::create_dir_all(self.package_dir.clone()).ok();

@@ -1,7 +1,7 @@
 .logo-image {
     display: block;
     margin: 10px auto 10px auto;
-    width: 60%;
+    width: 50%;
 }
 
 .overtop-label {
@@ -97,26 +97,37 @@
     overflow-y: scroll;
 }
 
-.install-button, .dialog-button {
+.button-div {
+    margin: auto;
+    text-align: center;
+}
+
+.install-button {
+    width: 20%;
+    background-color: #0069d9;
+    font-size: 1.5em;
+    margin-bottom: 5px !important;
+}
+
+.uninstall-button {
+    width: 13%;
+    background-color: #c41d00;
+    font-size: 1em;
+}
+
+.generic-button {
     font-family: inherit;
     font-weight: 600;
-    background-color: #0069d9;
-    border: 0px;
-    border-radius: 5px;
     margin: auto;
     display: block;
-    width: 20%;
-    font-size: 2em;
+    border: 0px;
+    border-radius: 5px;
     color: white;
     transition-duration: 0.1s;
     cursor: pointer;
 }
 
-.install-button:active {
-    background-color: #005fc4;
-}
-
-.install-button:disabled {
+.generic-button:disabled {
     background-color: #20232A;
 }
 
@@ -165,6 +176,7 @@
     width: 30%;
     font-size: 1.5em;
     position: absolute;
+    display: block;
     bottom: 10%;
     left: 50%;
     transform: translate(-50%, 0);
