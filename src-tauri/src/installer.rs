@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fs, io::{self, Cursor}};
 use log::{error, info, warn};
-use zip::ZipArchive;
+use zip::{ZipArchive, read::ZipFile};
 
 use crate::{sizegenerator::SizeGenerator, util::{Error, Features, get_path_beginning, strip_path_beginning}};
 
@@ -10,6 +10,20 @@ const OPTIONAL_PREFIX: &str = "OPTIONALS";
 enum InstallLocation {
     Package,
     Program
+}
+
+fn add_to_generator(generator: &mut SizeGenerator, relative_path: &str, file: &ZipFile) -> Result<(), Error> {
+    if file.name().contains("layout.json") || file.name().contains("manifest.json") {return Ok(())}
+    // Add file to generator
+    match generator.add_file(strip_path_beginning(relative_path).unwrap(), file.size(), file.last_modified().to_time().to_timespec().sec) {
+        Ok(_) => {}
+        Err(e) => {
+            error!("Could not add {} to layout.json generator!", file.name());
+            return Err(Error::IOError(e))
+        }
+    };
+
+    Ok(())
 }
 
 pub struct Installer {
@@ -95,7 +109,7 @@ impl Installer {
             info!("Requested feature \"{}\"", option.name);
         }
         // Remove community package installation
-        self.remove_package();
+        self.remove_package().ok();
 
         // Create any directories that do not exist
         fs::create_dir_all(self.package_dir.clone()).ok();
@@ -117,14 +131,7 @@ impl Installer {
             let full_path = match install_location {
                 InstallLocation::Package => {
                     if file.is_file() {
-                        // Add file to generator
-                        match generator.add_file(strip_path_beginning(&relative_path).unwrap(), file.size(), file.last_modified().to_time().to_timespec().sec) {
-                            Ok(_) => {}
-                            Err(e) => {
-                                error!("Could not add {} to layout.json generator!", file.name());
-                                return Err(Error::IOError(e))
-                            }
-                        };
+                        add_to_generator(&mut generator, &relative_path, &file)?;
                     }
 
                     format!("{}\\{}", self.package_dir, relative_path)
