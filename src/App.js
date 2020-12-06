@@ -1,6 +1,7 @@
 import './stylesheet.css';
 import React from 'react';
 import { promisified, invoke } from 'tauri/api/tauri'
+import { open } from 'tauri/api/window'
 
 import Dialog from './components/Dialog'
 import DirectoryEntry from './components/DirectoryEntry'
@@ -38,7 +39,7 @@ class App extends React.Component {
                     currentDialog: {
                         title: "Release " + args.releaseData.tagName,
                         description: `Released on ${date.toDateString()}`,
-                        buttonText: "OK",
+                        buttonText: "Release Notes",
                     },
                     dialogActive: true
                 })
@@ -134,6 +135,14 @@ class App extends React.Component {
     }
 
     dialogButtonClicked() {
+        if (!this.state.installing) {
+            // Showing release info
+            open("https://github.com/Sequal32/yourcontrol/releases/latest")
+        }
+        this.setState({dialogActive: false})
+    }
+
+    dialogClosed() {
         this.setState({dialogActive: false})
     }
 
@@ -149,7 +158,7 @@ class App extends React.Component {
                     <button class="generic-button uninstall-button" onClick={this.promptUninstall.bind(this)} disabled={this.state.uninstalling}>{this.state.uninstalling ? "Uninstalling" : "Uninstall"}</button>
                   
                     <Overlay hidden={this.state.dialogActive}/>
-                    <Dialog hidden={this.state.dialogActive} title={this.state.currentDialog.title} description={this.state.currentDialog.description} buttonText={this.state.currentDialog.buttonText} callback={this.dialogButtonClicked.bind(this)}/>
+                    <Dialog hidden={this.state.dialogActive} title={this.state.currentDialog.title} description={this.state.currentDialog.description} buttonText={this.state.currentDialog.buttonText} onAck={this.dialogButtonClicked.bind(this)} onClose={this.dialogClosed.bind(this)}/>
             </div>
         );
     }

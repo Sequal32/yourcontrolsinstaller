@@ -62,7 +62,7 @@
     margin: auto;
     margin-bottom: 50px;
     width: 95%;
-    height: 170px;
+    height: 30vh;
 }
 
 .feature-text {
@@ -161,7 +161,19 @@
     margin-top: 10px;
 }
 
-.dialog-div p {
+.dialog-x {
+    position: absolute;
+    right: 2%;
+    top: 3%;
+    background-color: transparent;
+    outline: none;
+    color: lightgray;
+    overflow: hidden;
+    border: none;
+    font-size: large;
+}
+
+.dialog-desc {
     margin: auto;
     position: absolute;
     width: 80%;
@@ -173,7 +185,8 @@
 }
 
 .dialog-button {
-    width: 30%;
+    padding-left: 5%;
+    padding-right: 5%;
     font-size: 1.5em;
     position: absolute;
     display: block;

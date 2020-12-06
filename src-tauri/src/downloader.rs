@@ -14,7 +14,8 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gec
 #[serde(rename_all = "camelCase")]
 pub struct ReleaseData {
     pub date: i64,
-    pub tag_name: String
+    pub tag_name: String,
+    pub release_url: String
 }
 
 pub struct Downloader {
@@ -42,13 +43,14 @@ impl Downloader {
 
         let time = match DateTime::parse_from_rfc3339(asset_data["updated_at"].as_str()?) {
             Ok(t) => t.timestamp(),
-            Err(e) => 0
+            Err(_) => 0
         };
 
         Some(
             ReleaseData {
                 date: time,
                 tag_name: data["tag_name"].as_str()?.to_string(),
+                release_url: data["html_url"].as_str()?.to_string()
             }
         )
     }
