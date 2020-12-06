@@ -65,8 +65,8 @@ class App extends React.Component {
             this.setState({
                 currentDialog: {
                     title: "Installation Successful",
-                    description: "The program has been successfully installed. Get flying!",
-                    buttonText: "OK"
+                    description: "The program has been successfully installed!\nA shortcut has been placed on the Desktop.\n\nGet flying!",
+                    buttonText: "Launch"
                 },
                 dialogActive: true
             })
@@ -135,8 +135,12 @@ class App extends React.Component {
     }
 
     dialogButtonClicked() {
-        if (!this.state.installing) {
-            // Showing release info
+        if (this.state.currentDialog.title == "Installation Successful") {
+            invoke({
+                cmd: "launch"
+            })
+            //
+        } else if (this.state.currentDialog.title.includes("Release")) {
             open("https://github.com/Sequal32/yourcontrol/releases/latest")
         }
         this.setState({dialogActive: false})

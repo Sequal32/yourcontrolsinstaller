@@ -204,6 +204,13 @@ fn main() {
                             }
                         }, callback, error);
                     }
+
+                    Launch => {
+                        match installer.launch() {
+                            Ok(_) => {}
+                            Err(e) => error!("Could not automatically launch the program! Reason: {}", e)
+                        };
+                    }
                 }
                 Ok(())
             }

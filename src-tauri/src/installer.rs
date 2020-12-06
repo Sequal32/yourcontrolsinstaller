@@ -7,6 +7,8 @@ use crate::{sizegenerator::SizeGenerator, util::{Error, Features, get_path_begin
 const COMMUNITY_PREFIX: &str = "PLACE IN COMMUNITY PACKAGES";
 const OPTIONAL_PREFIX: &str = "OPTIONALS";
 
+const EXE_NAME: &str = "sharedcockpit.exe";
+
 enum InstallLocation {
     Package,
     Program
@@ -100,6 +102,10 @@ impl Installer {
         }
     }
 
+    pub fn get_exe_dir(&self) -> String {
+        format!("{}\\{}", self.program_dir, EXE_NAME)
+    }
+
     pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, options: &Features) -> Result<(), Error> {
         // Convert features to unique path names
         let mut features = HashSet::new();
@@ -174,6 +180,31 @@ impl Installer {
             }
         }
 
+        // Generate shortcut
+        match dirs::desktop_dir() {
+            Some(mut path) => {
+                path.push("Your Controls");
+                match std::os::windows::fs::symlink_file(self.get_exe_dir(), path) {
+                    Ok(()) => {}
+                    Err(e) => warn!("Could not create shortcut! Reason: {:?}", e)
+                };
+            }
+            None => warn!("Could not find desktop location, shortcut not created.")
+        };
+
         Ok(())
+    }
+
+    pub fn launch(&self) -> Result<(), io::Error> {
+        let mut process = std::process::Command::new(self.get_exe_dir());
+        process
+            .stderr(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stdin(std::process::Stdio::null());
+
+        match process.spawn() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e)
+        }
     }
 }

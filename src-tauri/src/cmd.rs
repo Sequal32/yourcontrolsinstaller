@@ -27,5 +27,6 @@ pub enum Cmd {
     Uninstall {
         callback: String,
         error: String,
-    }
+    },
+    Launch
 }
