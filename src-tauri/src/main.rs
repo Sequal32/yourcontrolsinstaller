@@ -133,7 +133,12 @@ fn main() {
                     }
                     // DIrectory browse
                     Browse {browse_for, callback, error} => {
-                        let location = match dialog::pick_folder(Option::<String>::None) {
+                        let open_path = match browse_for {
+                            cmd::BrowseFor::Program => default_install_path.clone(),
+                            cmd::BrowseFor::Package => default_package_path.clone()
+                        };
+
+                        let location = match dialog::pick_folder(Some(open_path)) {
                             Ok(dialog::Response::Okay(mut location)) => {
                                 
                                 match browse_for {
