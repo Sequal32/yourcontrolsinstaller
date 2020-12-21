@@ -17,7 +17,7 @@ enum InstallLocation {
 fn add_to_generator(generator: &mut SizeGenerator, relative_path: &str, file: &ZipFile) -> Result<(), Error> {
     if file.name().contains("layout.json") || file.name().contains("manifest.json") {return Ok(())}
     // Add file to generator
-    match generator.add_file(strip_path_beginning(relative_path).unwrap(), file.size(), file.last_modified().to_time().to_timespec().sec) {
+    match generator.add_file(strip_path_beginning(relative_path).unwrap(), file.size()) {
         Ok(_) => {}
         Err(e) => {
             error!("Could not add {} to layout.json generator!", file.name());

@@ -1,11 +1,15 @@
-use std::fs::File;
-
-use serde_json::{self, json};
+use std::{fs::File};
+use chrono::offset::Utc;
+use serde_json::{json};
 use serde::{Serialize};
 
 use crate::util::Error;
 
 const DATE_CONSTANT: i64 = 116444736000000000;
+
+fn get_current_time() -> i64 {
+    DATE_CONSTANT + Utc::now().timestamp() * 10000000
+}
 
 #[derive(Serialize)]
 struct FileData {
@@ -25,11 +29,11 @@ impl SizeGenerator {
         }
     }
 
-    pub fn add_file(&mut self, relative_path: String, size: u64, last_modified: i64) -> std::io::Result<()> {
+    pub fn add_file(&mut self, relative_path: String, size: u64) -> std::io::Result<()> {
         self.file_data.push(FileData {
             path: relative_path,
             size: size,
-            date: last_modified * 10000000 + DATE_CONSTANT,
+            date: get_current_time(),
         });
 
         Ok(())
