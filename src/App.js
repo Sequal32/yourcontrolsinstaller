@@ -5,7 +5,7 @@ import { open } from 'tauri/api/window'
 
 import Dialog from './components/Dialog'
 import DirectoryEntry from './components/DirectoryEntry'
-import OptionalFeatures from './components/FeatureList'
+import {OptionalFeatures, FeatureEntry} from './components/FeatureList'
 import Overlay from './components/Overlay'
 
 class App extends React.Component {
@@ -26,6 +26,7 @@ class App extends React.Component {
             dialogActive: false
         }
         this.selectedFeatures = []
+        this.selectedOptions = []
     }
 
     componentDidMount() {
@@ -54,12 +55,17 @@ class App extends React.Component {
         this.selectedFeatures = Array.from(selectedFeatures)
     }
 
+    optionsCallback(selectedOptions) {
+        this.selectedOptions = Array.from(selectedOptions)
+    }
+
     promptInstall() {
         this.setState({"installing": true})
 
         promisified({
             cmd: "install",
-            features: this.selectedFeatures
+            features: this.selectedFeatures,
+            options: this.selectedOptions
         }).then(() => {
 
             this.setState({
@@ -156,8 +162,17 @@ class App extends React.Component {
                     <img class="logo-image" src="logo.png"/>
                     <DirectoryEntry title="Program Installation Directory" location={this.state.programDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "program")}/>
                     <DirectoryEntry title="Community Packages Directory" location={this.state.packageDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "package")}/>
-                    <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
+
+                    <div class="feature-list">
+                        <h3>Mod Compatibility</h3>
+                        <p>This program modifies files that other mods may depend on. Enable these if you would like shared cockpit functionality in these mods, or uncheck if you experience issues.</p>
+                        <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
+                    </div>
                   
+                    <div class="feature-list-small">
+                        <OptionalFeatures featureList={[{name: "Desktop Shortcut"}]} callback={this.optionsCallback.bind(this)}/>
+                    </div>
+
                     <button class="generic-button install-button" onClick={this.promptInstall.bind(this)} disabled={this.state.installing}>{this.state.installing ? "Installing" : "Install"}</button>
                     <button class="generic-button uninstall-button" onClick={this.promptUninstall.bind(this)} disabled={this.state.uninstalling}>{this.state.uninstalling ? "Uninstalling" : "Uninstall"}</button>
                   

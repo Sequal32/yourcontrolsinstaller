@@ -65,6 +65,13 @@
     height: 30vh;
 }
 
+.feature-list-small {
+    margin: auto;
+    margin-bottom: 50px;
+    width: 95%;
+    height: 10vh;
+}
+
 .feature-text {
     font-size: 20px;
     margin: 10px;
@@ -200,7 +207,13 @@
     background-color: #24262b;
 }
 
+.option-list {
+    margin: auto;
+    width: 50vw;
+}
+
 html {
+    position: fixed;
     background: linear-gradient(rgba(35,31,31,1), rgba(5,23,38,1));
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     height: 100%;

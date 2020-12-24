@@ -13,6 +13,7 @@ mod util;
 use std::{env, fs::File};
 use std::fmt::Display;
 use downloader::{Downloader, ReleaseData};
+use installer::Installer;
 use log::{error, info};
 use simplelog::{Config, LevelFilter, WriteLogger};
 use serde::Serialize;
@@ -43,7 +44,7 @@ fn main() {
         WriteLogger::init(LevelFilter::Info, Config::default(), file).ok();
     }
 
-    let mut installer =  installer::Installer::new();
+    let mut installer = Installer::new();
     let mut downloader = Downloader::new();
 
     // Fetch latest release data
@@ -164,7 +165,7 @@ fn main() {
                         
                     }
 
-                    Install {callback, error, features} => {
+                    Install {callback, error, features, options} => {
                         let mut selected_features = Vec::new();
 
                         // Match list of possible features with selected features
@@ -177,7 +178,7 @@ fn main() {
                         }
                         // Download and install
                         let result = match downloader.download_release() {
-                            Ok(mut zip) => installer.install(&mut zip, &selected_features),
+                            Ok(mut zip) => installer.install(&mut zip, &selected_features, options.contains("Desktop Shortcut")),
                             Err(e) => Err(e)
                         };
 

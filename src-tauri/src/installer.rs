@@ -1,8 +1,9 @@
+#[cfg(windows)]
 use std::{collections::HashSet, fs, io::{self, Cursor}};
 use log::{error, info, warn};
 use zip::{ZipArchive, read::ZipFile};
 
-use crate::{sizegenerator::SizeGenerator, util::{Error, Features, get_path_beginning, strip_path_beginning}};
+use crate::{sizegenerator::SizeGenerator, util::{Error, Features, get_path_beginning, launch_program, strip_path_beginning}};
 
 const COMMUNITY_PREFIX: &str = "PLACE IN COMMUNITY PACKAGES";
 const OPTIONAL_PREFIX: &str = "OPTIONALS";
@@ -106,11 +107,11 @@ impl Installer {
         format!("{}\\{}", self.program_dir, EXE_NAME)
     }
 
-    pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, options: &Features) -> Result<(), Error> {
+    pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, features: &Features, create_shortcut: bool) -> Result<(), Error> {
         // Convert features to unique path names
-        let mut features = HashSet::new();
-        for option in options {
-            features.insert(option.path.clone());
+        let mut feature_paths = HashSet::new();
+        for option in features {
+            feature_paths.insert(option.path.clone());
 
             info!("Requested feature \"{}\"", option.name);
         }
@@ -129,7 +130,7 @@ impl Installer {
             let mut file = contents.by_index(i).unwrap();
 
             // Determine whether community or program files
-            let (relative_path, install_location) = match self.get_relative_path_for_file(file.name(), &features) {
+            let (relative_path, install_location) = match self.get_relative_path_for_file(file.name(), &feature_paths) {
                 Some(d) => d,
                 None => continue
             };
@@ -181,16 +182,16 @@ impl Installer {
         }
 
         // Generate shortcut
-        match dirs::desktop_dir() {
-            Some(mut path) => {
-                path.push("Your Controls");
-                match std::os::windows::fs::symlink_file(self.get_exe_dir(), path) {
-                    Ok(()) => {}
-                    Err(e) => warn!("Could not create shortcut! Reason: {:?}", e)
-                };
-            }
-            None => warn!("Could not find desktop location, shortcut not created.")
-        };
+        if create_shortcut {
+            // Get relative path
+            let mut path = std::env::current_exe().unwrap();
+            // Don't need exe path
+            path.pop();
+            // Push further path
+            path.push("shortcutcreator.exe");
+
+            launch_program(path, Some(self.get_exe_dir().into()));
+        }
 
         Ok(())
     }

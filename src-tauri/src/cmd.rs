@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -22,7 +24,8 @@ pub enum Cmd {
     Install {
         callback: String,
         error: String,
-        features: Vec<String>
+        features: HashSet<String>,
+        options: HashSet<String>
     },
     Uninstall {
         callback: String,

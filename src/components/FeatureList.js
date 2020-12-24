@@ -90,15 +90,12 @@ class OptionalFeatures extends React.Component {
         this.features = this.props.featureList != null ? this.props.featureList.map((feature) => <FeatureEntry name={feature.name} callback={this.selectFeature.bind(this, feature.name, feature.group)} checked={this.selectedFeatures.has(feature.name)}/>) : []
 
         return (
-            <div class="feature-list">
-                <h3>Mod Compatibility</h3>
-                <p>This program modifies files that other mods may depend on. Enable these if you would like shared cockpit functionality in these mods, or uncheck if you experience issues.</p>
-                <div class="feature-list-grid">
-                    {this.features}
-                </div>
+            <div class="feature-list-grid">
+                {this.features}
             </div>
         );
     }
 }
 
 export default OptionalFeatures;
+export {FeatureEntry, OptionalFeatures};

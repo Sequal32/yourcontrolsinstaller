@@ -1,5 +1,6 @@
-use std::fmt::Display;
+use std::{{os::windows::ffi::OsStrExt}, ffi::{OsStr}, fmt::Display, io, path::PathBuf};
 use serde::{Serialize, Deserialize};
+use winapi::um::shellapi::ShellExecuteW;
 
 #[derive(Debug)]
 pub enum Error {
@@ -50,4 +51,28 @@ pub fn get_path_beginning(path: &str) -> Option<String> {
         return Some(path[0..dir_slash].to_string())
     }
     return None
+}
+
+pub fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
+    fn inner(s: &OsStr) -> io::Result<Vec<u16>> {
+        let mut maybe_result: Vec<u16> = s.encode_wide().collect();
+        if maybe_result.iter().any(|&u| u == 0) {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput,
+                                      "strings passed to WinAPI cannot contain NULs"));
+        }
+        maybe_result.push(0);
+        Ok(maybe_result)
+    }
+    inner(s.as_ref())
+}
+
+pub fn launch_program(path: PathBuf, arg: Option<PathBuf>) {
+    let open_bytes = to_u16s("open").unwrap();
+    let path_bytes = to_u16s(path).unwrap();
+
+    let exe_path_bytes = arg.map(|x| to_u16s(x).unwrap());
+
+    unsafe {
+        ShellExecuteW(std::ptr::null_mut(), open_bytes.as_ptr(), path_bytes.as_ptr(), exe_path_bytes.map_or_else(|| std::ptr::null(), |x| x.as_ptr()), std::ptr::null(), winapi::ctypes::c_int::from(5));
+    }
 }
