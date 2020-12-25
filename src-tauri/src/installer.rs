@@ -1,5 +1,5 @@
 #[cfg(windows)]
-use std::{collections::HashSet, fs, io::{self, Cursor}, path::{Path, PathBuf}};
+use std::{collections::HashSet, fs, io::{self, Cursor}, path::{PathBuf}};
 use log::{error, info, warn};
 use zip::{ZipArchive, read::ZipFile};
 
@@ -107,16 +107,21 @@ impl Installer {
         let path = self.get_exe_dir();
 
         if path.exists() {
-            fs::remove_dir_all(path)?
+            fs::remove_dir_all(self.program_dir.clone())?
         }
 
         Ok(())
     }
 
-    pub fn uninstall(&self) -> Result<(), io::Error> {
-        self.remove_package()?;
-        self.remove_exe()?;
-        Ok(())
+    pub fn uninstall(&self) {
+        match self.remove_package() {
+            Ok(_) => {}
+            Err(e) => warn!("Could not remove package! Reason: {}", e)
+        };
+        match self.remove_exe() {
+            Ok(_) => {}
+            Err(e) => warn!("Could not remove program! Reason: {}", e)
+        };
     }
 
     pub fn get_exe_dir(&self) -> PathBuf {
@@ -132,7 +137,7 @@ impl Installer {
             info!("Requested feature \"{}\"", option.name);
         }
         // Remove community package installation
-        self.uninstall().ok();
+        self.uninstall();
 
         // Create any directories that do not exist
         fs::create_dir_all(self.package_dir.clone()).ok();

@@ -71,7 +71,7 @@ class App extends React.Component {
             this.setState({
                 currentDialog: {
                     title: "Installation Successful",
-                    description: "The program has been successfully installed!\nA shortcut has been placed on the Desktop.\n\nGet flying!",
+                    description: "The program has been successfully installed!\n\nGet flying!",
                     buttonText: "Launch"
                 },
                 dialogActive: true
@@ -103,7 +103,7 @@ class App extends React.Component {
             this.setState({
                 currentDialog: {
                     title: "Uninstalling Successful",
-                    description: "The community package has been successfully uninstalled. If you'd like to remove the application, delete the program folder.",
+                    description: "The program has been uninstalled.",
                     buttonText: "OK"
                 },
                 dialogActive: true
@@ -141,7 +141,7 @@ class App extends React.Component {
     }
 
     dialogButtonClicked() {
-        if (this.state.currentDialog.title == "Installation Successful") {
+        if (this.state.currentDialog.buttonText == "Launch") {
             invoke({
                 cmd: "launch"
             })

@@ -201,13 +201,14 @@ fn main() {
                     }
 
                     Uninstall {callback, error} => {
-                        let result = installer.uninstall();
+                        installer.uninstall();
 
                         tauri::execute_promise(_webview, || {
-                            match result {
-                                Ok(_) => Ok(()),
-                                Err(e) => Err(e.into())
-                            }
+                            // match result {
+                            //     Ok(_) => Ok(()),
+                            //     Err(e) => Err(e.into())
+                            // }
+                            Ok(())
                         }, callback, error);
                     }
 
