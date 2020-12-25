@@ -10,7 +10,7 @@ mod finder;
 mod sizegenerator;
 mod util;
 
-use std::{env, fs::File};
+use std::{env, fs::File, sync::{Arc, atomic::{AtomicBool, Ordering}}, thread::{sleep, spawn}, time::Duration};
 use std::fmt::Display;
 use downloader::{Downloader, ReleaseData};
 use installer::Installer;
@@ -101,9 +101,14 @@ fn main() {
             None
         }
     };
-    
 
-    tauri::AppBuilder::new()
+    let should_exit = Arc::new(AtomicBool::new(false));
+    let should_exit_clone = should_exit.clone();
+    
+    spawn(move || {
+        let should_exit_clone2 = should_exit_clone.clone();
+
+        tauri::AppBuilder::new()
         .invoke_handler(move |_webview, arg| {
         use cmd::Cmd::*;
         
@@ -196,7 +201,7 @@ fn main() {
                     }
 
                     Uninstall {callback, error} => {
-                        let result = installer.remove_package();
+                        let result = installer.uninstall();
 
                         tauri::execute_promise(_webview, || {
                             match result {
@@ -211,6 +216,8 @@ fn main() {
                             Ok(_) => {}
                             Err(e) => error!("Could not automatically launch the program! Reason: {}", e)
                         };
+
+                        should_exit_clone2.store(true, Ordering::Relaxed);
                     }
                 }
                 Ok(())
@@ -219,4 +226,12 @@ fn main() {
         })
         .build()
         .run();
+
+        should_exit_clone.store(true, Ordering::Relaxed);
+    });
+
+    loop {
+        if should_exit.load(Ordering::Relaxed) {return}
+        sleep(Duration::from_secs(1));
+    }
 }

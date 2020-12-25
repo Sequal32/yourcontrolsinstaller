@@ -1,14 +1,14 @@
 #[cfg(windows)]
-use std::{collections::HashSet, fs, io::{self, Cursor}};
+use std::{collections::HashSet, fs, io::{self, Cursor}, path::{Path, PathBuf}};
 use log::{error, info, warn};
 use zip::{ZipArchive, read::ZipFile};
 
 use crate::{sizegenerator::SizeGenerator, util::{Error, Features, get_path_beginning, launch_program, strip_path_beginning}};
 
-const COMMUNITY_PREFIX: &str = "PLACE IN COMMUNITY PACKAGES";
-const OPTIONAL_PREFIX: &str = "OPTIONALS";
+const COMMUNITY_PREFIX: &str = "community";
+const OPTIONAL_PREFIX: &str = "optionals";
 
-const EXE_NAME: &str = "sharedcockpit.exe";
+const EXE_NAME: &str = "YourControls.exe";
 
 enum InstallLocation {
     Package,
@@ -103,8 +103,24 @@ impl Installer {
         }
     }
 
-    pub fn get_exe_dir(&self) -> String {
-        format!("{}\\{}", self.program_dir, EXE_NAME)
+    pub fn remove_exe(&self) -> Result<(), io::Error> {
+        let path = self.get_exe_dir();
+
+        if path.exists() {
+            fs::remove_dir_all(path)?
+        }
+
+        Ok(())
+    }
+
+    pub fn uninstall(&self) -> Result<(), io::Error> {
+        self.remove_package()?;
+        self.remove_exe()?;
+        Ok(())
+    }
+
+    pub fn get_exe_dir(&self) -> PathBuf {
+        format!("{}\\{}", self.program_dir, EXE_NAME).into()
     }
 
     pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, features: &Features, create_shortcut: bool) -> Result<(), Error> {
@@ -116,7 +132,7 @@ impl Installer {
             info!("Requested feature \"{}\"", option.name);
         }
         // Remove community package installation
-        self.remove_package().ok();
+        self.uninstall().ok();
 
         // Create any directories that do not exist
         fs::create_dir_all(self.package_dir.clone()).ok();
