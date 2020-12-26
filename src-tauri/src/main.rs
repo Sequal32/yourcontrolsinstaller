@@ -181,6 +181,10 @@ fn main() {
                                 }
                             }
                         }
+                        // Erase previous exe contents
+                        if options.contains("Clean Install") {
+                            installer.remove_exe().ok();
+                        }
                         // Download and install
                         let result = match downloader.download_release() {
                             Ok(mut zip) => installer.install(&mut zip, &selected_features, options.contains("Desktop Shortcut")),

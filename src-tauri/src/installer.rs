@@ -107,21 +107,24 @@ impl Installer {
         let path = self.get_exe_dir();
 
         if path.exists() {
-            fs::remove_dir_all(self.program_dir.clone())?
+            return match fs::remove_dir_all(self.program_dir.clone()) {
+                Ok(_) => {
+                    info!("Removed exe folder contents at {}", self.program_dir);
+                    Ok(())
+                },
+                Err(e) => {
+                    warn!("Could not remove exe installation, Reason: {}", e);
+                    Err(e)
+                }
+            }
         }
 
         Ok(())
     }
 
     pub fn uninstall(&self) {
-        match self.remove_package() {
-            Ok(_) => {}
-            Err(e) => warn!("Could not remove package! Reason: {}", e)
-        };
-        match self.remove_exe() {
-            Ok(_) => {}
-            Err(e) => warn!("Could not remove program! Reason: {}", e)
-        };
+        self.remove_package().ok();
+        self.remove_exe().ok();
     }
 
     pub fn get_exe_dir(&self) -> PathBuf {
@@ -137,7 +140,7 @@ impl Installer {
             info!("Requested feature \"{}\"", option.name);
         }
         // Remove community package installation
-        self.uninstall();
+        self.remove_package().ok();
 
         // Create any directories that do not exist
         fs::create_dir_all(self.package_dir.clone()).ok();
