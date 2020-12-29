@@ -39,9 +39,8 @@ impl Downloader {
     }
 
     fn parse_json_data(data: Value) -> Option<ReleaseData> {
-        let asset_data = data["assets"].as_array()?[0].as_object()?;
 
-        let time = match DateTime::parse_from_rfc3339(asset_data["updated_at"].as_str()?) {
+        let time = match DateTime::parse_from_rfc3339(data["published_at"].as_str()?) {
             Ok(t) => t.timestamp(),
             Err(_) => 0
         };
