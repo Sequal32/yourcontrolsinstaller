@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/installerwebsite/static/css/main.69a90726.chunk.css",
-    "main.js": "/installerwebsite/static/js/main.8fe75154.chunk.js",
-    "main.js.map": "/installerwebsite/static/js/main.8fe75154.chunk.js.map",
-    "runtime-main.js": "/installerwebsite/static/js/runtime-main.f9355834.js",
-    "runtime-main.js.map": "/installerwebsite/static/js/runtime-main.f9355834.js.map",
-    "static/js/2.c7e11686.chunk.js": "/installerwebsite/static/js/2.c7e11686.chunk.js",
-    "static/js/2.c7e11686.chunk.js.map": "/installerwebsite/static/js/2.c7e11686.chunk.js.map",
-    "static/js/3.28fef668.chunk.js": "/installerwebsite/static/js/3.28fef668.chunk.js",
-    "static/js/3.28fef668.chunk.js.map": "/installerwebsite/static/js/3.28fef668.chunk.js.map",
-    "index.html": "/installerwebsite/index.html",
-    "static/css/main.69a90726.chunk.css.map": "/installerwebsite/static/css/main.69a90726.chunk.css.map",
-    "static/js/2.c7e11686.chunk.js.LICENSE.txt": "/installerwebsite/static/js/2.c7e11686.chunk.js.LICENSE.txt"
+    "main.css": "/yourcontrolsinstaller/static/css/main.69a90726.chunk.css",
+    "main.js": "/yourcontrolsinstaller/static/js/main.8fe75154.chunk.js",
+    "main.js.map": "/yourcontrolsinstaller/static/js/main.8fe75154.chunk.js.map",
+    "runtime-main.js": "/yourcontrolsinstaller/static/js/runtime-main.fbddf58f.js",
+    "runtime-main.js.map": "/yourcontrolsinstaller/static/js/runtime-main.fbddf58f.js.map",
+    "static/js/2.c7e11686.chunk.js": "/yourcontrolsinstaller/static/js/2.c7e11686.chunk.js",
+    "static/js/2.c7e11686.chunk.js.map": "/yourcontrolsinstaller/static/js/2.c7e11686.chunk.js.map",
+    "static/js/3.28fef668.chunk.js": "/yourcontrolsinstaller/static/js/3.28fef668.chunk.js",
+    "static/js/3.28fef668.chunk.js.map": "/yourcontrolsinstaller/static/js/3.28fef668.chunk.js.map",
+    "index.html": "/yourcontrolsinstaller/index.html",
+    "static/css/main.69a90726.chunk.css.map": "/yourcontrolsinstaller/static/css/main.69a90726.chunk.css.map",
+    "static/js/2.c7e11686.chunk.js.LICENSE.txt": "/yourcontrolsinstaller/static/js/2.c7e11686.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.f9355834.js",
+    "static/js/runtime-main.fbddf58f.js",
     "static/js/2.c7e11686.chunk.js",
     "static/css/main.69a90726.chunk.css",
     "static/js/main.8fe75154.chunk.js"
