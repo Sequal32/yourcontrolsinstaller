@@ -131,6 +131,14 @@ impl Installer {
         format!("{}\\{}", self.program_dir, EXE_NAME).into()
     }
 
+    pub fn get_program_dir(&self) -> &String {
+        &self.program_dir
+    }
+
+    pub fn get_package_dir(&self) -> &String {
+        &self.package_dir
+    }
+
     pub fn install(&self, contents: &mut ZipArchive<Cursor<Vec<u8>>>, features: &Features, create_shortcut: bool) -> Result<(), Error> {
         // Convert features to unique path names
         let mut feature_paths = HashSet::new();

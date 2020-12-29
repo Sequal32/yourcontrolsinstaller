@@ -10,8 +10,9 @@ mod finder;
 mod sizegenerator;
 mod util;
 
-use std::{env, fs::File, sync::{Arc, atomic::{AtomicBool, Ordering}}, thread::{sleep, spawn}, time::Duration};
+use std::{env, fs::File, thread::{sleep, spawn}, time::Duration};
 use std::fmt::Display;
+use crossbeam_channel::unbounded;
 use downloader::{Downloader, ReleaseData};
 use installer::Installer;
 use log::{error, info};
@@ -36,6 +37,12 @@ struct StartupResponse {
     package_directory: String,
     program_directory: String,
     release_data: Option<ReleaseData>
+}
+
+enum AppMessage {
+    Browse(String),
+    BrowseResult(Result<dialog::Response, ()>),
+    Shutdown,
 }
 
 fn main() {
@@ -102,11 +109,13 @@ fn main() {
         }
     };
 
-    let should_exit = Arc::new(AtomicBool::new(false));
-    let should_exit_clone = should_exit.clone();
+    // Handle interthread communication
+    let (to_app_tx, to_app_rx) = unbounded::<AppMessage>();
+    let (to_main_tx, to_main_rx) = unbounded::<AppMessage>();
+
+    let to_main_tx2 = to_main_tx.clone();
     
     spawn(move || {
-        let should_exit_clone2 = should_exit_clone.clone();
 
         tauri::AppBuilder::new()
         .invoke_handler(move |_webview, arg| {
@@ -139,23 +148,32 @@ fn main() {
                     }
                     // DIrectory browse
                     Browse {browse_for, callback, error} => {
+
                         let open_path = match browse_for {
-                            cmd::BrowseFor::Program => default_install_path.clone(),
-                            cmd::BrowseFor::Package => default_package_path.clone()
+                            cmd::BrowseFor::Program => installer.get_program_dir(),
+                            cmd::BrowseFor::Package => installer.get_package_dir()
                         };
 
-                        let location = match dialog::pick_folder(Some(open_path)) {
-                            Ok(dialog::Response::Okay(mut location)) => {
+                        println!("{:?}", installer.get_package_dir());
+                        
+                        to_main_tx.send(AppMessage::Browse(open_path.clone())).ok();
+
+                        let location = match to_app_rx.recv() {
+                            Ok(AppMessage::BrowseResult(Ok(dialog::Response::Okay(mut location)))) => {
                                 
                                 match browse_for {
                                     cmd::BrowseFor::Program => {
-                                        location += "\\YourControls";
-                                        installer.set_program_dir(location.clone())
+                                        if !location.ends_with("YourControls") {
+                                            location += "\\YourControls";
+                                        }
+                                        installer.set_program_dir(location.clone());
                                     }
                                     cmd::BrowseFor::Package => {
-                                        installer.set_package_dir(location.clone())
+                                        installer.set_package_dir(location.clone());
                                     }
                                 };
+
+                                
 
                                 Ok(location)
 
@@ -222,7 +240,7 @@ fn main() {
                             Err(e) => error!("Could not automatically launch the program! Reason: {}", e)
                         };
 
-                        should_exit_clone2.store(true, Ordering::Relaxed);
+                        to_main_tx.send(AppMessage::Shutdown).ok();
                     }
                 }
                 Ok(())
@@ -232,11 +250,24 @@ fn main() {
         .build()
         .run();
 
-        should_exit_clone.store(true, Ordering::Relaxed);
+        to_main_tx2.send(AppMessage::Shutdown).ok();
     });
 
     loop {
-        if should_exit.load(Ordering::Relaxed) {return}
-        sleep(Duration::from_secs(1));
+        match to_main_rx.recv() {
+            Ok(AppMessage::Browse(path)) => {
+
+                to_app_tx.send(AppMessage::BrowseResult(
+                    dialog::pick_folder(Some(path)).map_err(|_| ())
+                )).ok();
+
+            }
+            Ok(AppMessage::Shutdown) => {
+                return
+            }
+            _ => {}
+        }
+
+        sleep(Duration::from_millis(100));
     }
 }
