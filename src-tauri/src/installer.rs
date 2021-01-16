@@ -104,7 +104,7 @@ impl Installer {
     }
 
     pub fn remove_exe(&self) -> Result<(), io::Error> {
-        let path = self.get_exe_dir();
+        let path = self.get_exe_path();
 
         if path.exists() {
             return match fs::remove_dir_all(self.program_dir.clone()) {
@@ -127,7 +127,7 @@ impl Installer {
         self.remove_exe().ok();
     }
 
-    pub fn get_exe_dir(&self) -> PathBuf {
+    pub fn get_exe_path(&self) -> PathBuf {
         format!("{}\\{}", self.program_dir, EXE_NAME).into()
     }
 
@@ -222,15 +222,16 @@ impl Installer {
             // Push further path
             path.push("shortcutcreator.exe");
 
-            launch_program(path, Some(self.get_exe_dir().into()));
+            launch_program(path, Some(self.get_exe_path().into()));
         }
 
         Ok(())
     }
 
     pub fn launch(&self) -> Result<(), io::Error> {
-        let mut process = std::process::Command::new(self.get_exe_dir());
+        let mut process = std::process::Command::new(self.get_exe_path());
         process
+            .current_dir(self.get_program_dir())
             .stderr(std::process::Stdio::null())
             .stdout(std::process::Stdio::null())
             .stdin(std::process::Stdio::null());
