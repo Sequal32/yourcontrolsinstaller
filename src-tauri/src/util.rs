@@ -1,4 +1,4 @@
-use std::{{os::windows::ffi::OsStrExt}, ffi::{OsStr}, fmt::Display, io, path::PathBuf};
+use std::{ffi::{OsStr}, fmt::Display, io, os::windows::ffi::OsStrExt, path::PathBuf};
 use serde::{Serialize, Deserialize};
 use winapi::um::shellapi::ShellExecuteW;
 
@@ -66,13 +66,13 @@ pub fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
     inner(s.as_ref())
 }
 
-pub fn launch_program(path: PathBuf, arg: Option<PathBuf>) {
+pub fn launch_program(path: PathBuf, arg: Option<&str>) {
     let open_bytes = to_u16s("open").unwrap();
     let path_bytes = to_u16s(path).unwrap();
 
-    let exe_path_bytes = arg.map(|x| to_u16s(x).unwrap());
+    let arg_bytes = arg.map(|x| to_u16s(OsStr::new(x)).unwrap());
 
     unsafe {
-        ShellExecuteW(std::ptr::null_mut(), open_bytes.as_ptr(), path_bytes.as_ptr(), exe_path_bytes.map_or_else(|| std::ptr::null(), |x| x.as_ptr()), std::ptr::null(), winapi::ctypes::c_int::from(5));
+        ShellExecuteW(std::ptr::null_mut(), open_bytes.as_ptr(), path_bytes.as_ptr(), arg_bytes.map_or_else(|| std::ptr::null(), |x| x.as_ptr()), std::ptr::null(), winapi::ctypes::c_int::from(5));
     }
 }

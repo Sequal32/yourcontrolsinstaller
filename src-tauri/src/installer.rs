@@ -222,7 +222,7 @@ impl Installer {
             // Push further path
             path.push("shortcutcreator.exe");
 
-            launch_program(path, Some(self.get_exe_path().into()));
+            launch_program(path, None);
         }
 
         Ok(())
