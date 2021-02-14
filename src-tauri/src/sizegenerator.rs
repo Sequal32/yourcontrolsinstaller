@@ -1,4 +1,4 @@
-use std::{fs::File};
+use std::{fs::File, path::Path};
 use chrono::offset::Utc;
 use serde_json::{json};
 use serde::{Serialize};
@@ -39,7 +39,7 @@ impl SizeGenerator {
         Ok(())
     }
 
-    pub fn write_to_file(&self, path: &str) -> Result<(), Error> {
+    pub fn write_to_file<P: AsRef<Path>>(&self, path: P) -> Result<(), Error> {
         let data = json!({
             "content": self.file_data
         });

@@ -10,7 +10,7 @@ mod finder;
 mod sizegenerator;
 mod util;
 
-use std::{env, fs::File, thread::{sleep, spawn}, time::Duration};
+use std::{env, fs::File, path::PathBuf, thread::{sleep, spawn}, time::Duration};
 use std::fmt::Display;
 use crossbeam_channel::unbounded;
 use downloader::{Downloader, ReleaseData};
@@ -72,27 +72,26 @@ fn main() {
         Err(_) => match env::var("APPDATA") {
             Ok(path) => {
                 info!("Using default installation path.");
-                path + "\\YourControls"
+                PathBuf::from(path)
             },
             Err(e) => {
                 error!("Could not use any installation path. Reason: {}", e);
-                "YourControls".to_string()
+                PathBuf::from("YourControls")
             }
         }
     };
 
-    info!("Installation path: {}", default_install_path);
+    info!("Installation path: {:?}", default_install_path);
     installer.set_program_dir(default_install_path.clone());
     //
     let default_package_path = match finder::FlightSimFinder::get_package_location() {
         Ok(path) => {
-            info!("Found package location: {}", path);
-
+            info!("Found package location: {:?}", path);
             path
         },
         Err(e) => {
-            error!("Could not find any installation path. Reason: {}", e);
-            "Community\\YourControls".to_string()
+            error!("Could not find any installation path. Reason: {:?}", e);
+            PathBuf::from("Community/YourControls")
         }
     };
 
@@ -137,8 +136,8 @@ fn main() {
 
                             Ok(StartupResponse {
                                 feature_list: feature_list.clone(),
-                                package_directory: default_package_path,
-                                program_directory: default_install_path,
+                                package_directory: default_package_path.to_string_lossy().into_owned(),
+                                program_directory: default_install_path.to_string_lossy().into_owned(),
                                 release_data
                             })
 
@@ -156,20 +155,21 @@ fn main() {
 
                         println!("{:?}", installer.get_package_dir());
                         
-                        to_main_tx.send(AppMessage::Browse(open_path.clone())).ok();
+                        to_main_tx.send(AppMessage::Browse(open_path.to_string_lossy().into_owned())).ok();
 
                         let location = match to_app_rx.recv() {
-                            Ok(AppMessage::BrowseResult(Ok(dialog::Response::Okay(mut location)))) => {
+                            Ok(AppMessage::BrowseResult(Ok(dialog::Response::Okay(location)))) => {
+                                let mut location_path = PathBuf::from(&location);
                                 
                                 match browse_for {
                                     cmd::BrowseFor::Program => {
-                                        if !location.ends_with("YourControls") {
-                                            location += "\\YourControls";
+                                        if !location_path.ends_with("YourControls") {
+                                            location_path.push("YourControls");
                                         }
-                                        installer.set_program_dir(location.clone());
+                                        installer.set_program_dir(location_path);
                                     }
                                     cmd::BrowseFor::Package => {
-                                        installer.set_package_dir(location.clone());
+                                        installer.set_package_dir(location_path);
                                     }
                                 };
 

@@ -1,4 +1,4 @@
-use std::{io::BufRead, env, fs::File, io::BufReader};
+use std::{env, fs::File, io::BufRead, io::BufReader, path::PathBuf};
 
 use crate::util::Error;
 
@@ -29,7 +29,7 @@ impl FlightSimFinder {
         )
     }
 
-    pub fn get_package_location() -> Result<String, Error> {
+    pub fn get_package_location() -> Result<PathBuf, Error> {
         let file = Self::get_config_file()?;
         let reader = BufReader::new(file);
         
@@ -49,7 +49,7 @@ impl FlightSimFinder {
                         None => return Err(Error::MissingQuote)
                     };
 
-                    return Ok(line[first_quote + 1..closing_quote + 1].to_string() + "\\Community")
+                    return Ok([&line[first_quote + 1..closing_quote + 1], "Community"].iter().collect())
 
                 }
 
