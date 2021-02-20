@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/yourcontrolsinstaller/static/css/main.69a90726.chunk.css",
-    "main.js": "/yourcontrolsinstaller/static/js/main.8fe75154.chunk.js",
-    "main.js.map": "/yourcontrolsinstaller/static/js/main.8fe75154.chunk.js.map",
+    "main.js": "/yourcontrolsinstaller/static/js/main.f88c0b3a.chunk.js",
+    "main.js.map": "/yourcontrolsinstaller/static/js/main.f88c0b3a.chunk.js.map",
     "runtime-main.js": "/yourcontrolsinstaller/static/js/runtime-main.fbddf58f.js",
     "runtime-main.js.map": "/yourcontrolsinstaller/static/js/runtime-main.fbddf58f.js.map",
     "static/js/2.c7e11686.chunk.js": "/yourcontrolsinstaller/static/js/2.c7e11686.chunk.js",
@@ -17,6 +17,6 @@
     "static/js/runtime-main.fbddf58f.js",
     "static/js/2.c7e11686.chunk.js",
     "static/css/main.69a90726.chunk.css",
-    "static/js/main.8fe75154.chunk.js"
+    "static/js/main.f88c0b3a.chunk.js"
   ]
 }
