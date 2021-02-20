@@ -170,7 +170,7 @@ class App extends React.Component {
                     </div>
                   
                     <div class="feature-list-small">
-                        <OptionalFeatures featureList={[{name: "Desktop Shortcut"}, {name: "Clean Install"}]} callback={this.optionsCallback.bind(this)}/>
+                        <OptionalFeatures featureList={[{name: "Desktop Shortcut"}]} callback={this.optionsCallback.bind(this)}/>
                     </div>
 
                     <button class="generic-button install-button" onClick={this.promptInstall.bind(this)} disabled={this.state.installing}>{this.state.installing ? "Installing" : "Install"}</button>
