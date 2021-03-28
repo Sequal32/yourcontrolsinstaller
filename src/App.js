@@ -165,7 +165,7 @@ class App extends React.Component {
 
                     <div class="feature-list">
                         <h3>Mod Compatibility</h3>
-                        <p>This program modifies files that other mods may depend on. Enable these if you would like shared cockpit functionality in these mods, or uncheck if you experience issues.</p>
+                        <p>Enable these if you would like *full* shared cockpit functionality in these aircraft. However, this will modify aircraft files so sim updates and other mods may be broken because of this. Untick if you experience issues.</p>
                         <OptionalFeatures featureList={this.state.featureList} callback={this.featuresCallback.bind(this)}/>
                     </div>
                   

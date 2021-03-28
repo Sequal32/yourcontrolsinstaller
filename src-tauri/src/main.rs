@@ -1,23 +1,27 @@
 #![cfg_attr(
-  all(not(debug_assertions), target_os = "windows"),
-  windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
 mod cmd;
 mod downloader;
-mod installer;
 mod finder;
+mod installer;
 mod sizegenerator;
 mod util;
 
-use std::{env, fs::File, path::PathBuf, thread::{sleep, spawn}, time::Duration};
-use std::fmt::Display;
 use crossbeam_channel::unbounded;
 use downloader::{Downloader, ReleaseData};
 use installer::Installer;
 use log::{error, info};
-use simplelog::{Config, LevelFilter, WriteLogger};
 use serde::Serialize;
+use simplelog::{Config, LevelFilter, WriteLogger};
+use std::env;
+use std::fmt::Display;
+use std::fs::File;
+use std::path::PathBuf;
+use std::thread::{sleep, spawn};
+use std::time::Duration;
 use tauri::api::dialog;
 use util::Feature;
 
@@ -36,7 +40,7 @@ struct StartupResponse {
     feature_list: Option<Vec<Feature>>,
     package_directory: String,
     program_directory: String,
-    release_data: Option<ReleaseData>
+    release_data: Option<ReleaseData>,
 }
 
 enum AppMessage {
@@ -58,7 +62,10 @@ fn main() {
     let release_data = match downloader.get_data() {
         Ok(data) => data.cloned(),
         Err(e) => {
-            error!("Could not fetch latest release data from GitHub. Reason: {}", e);
+            error!(
+                "Could not fetch latest release data from GitHub. Reason: {}",
+                e
+            );
             None
         }
     };
@@ -68,17 +75,17 @@ fn main() {
         Ok(path) => {
             info!("Found previous installation path.");
             path
-        },
+        }
         Err(_) => match env::var("APPDATA") {
             Ok(path) => {
                 info!("Using default installation path.");
                 PathBuf::from(path)
-            },
+            }
             Err(e) => {
                 error!("Could not use any installation path. Reason: {}", e);
                 PathBuf::from("YourControls")
             }
-        }
+        },
     };
 
     info!("Installation path: {:?}", default_install_path);
@@ -88,7 +95,7 @@ fn main() {
         Ok(path) => {
             info!("Found package location: {:?}", path);
             path
-        },
+        }
         Err(e) => {
             error!("Could not find any installation path. Reason: {:?}", e);
             PathBuf::from("Community/YourControls")
@@ -101,7 +108,7 @@ fn main() {
         Ok(list) => {
             info!("Fetched {} features.", list.len());
             Some(list)
-        },
+        }
         Err(e) => {
             error!("Could not get features list! Reason: {}", e);
             None
@@ -113,140 +120,163 @@ fn main() {
     let (to_main_tx, to_main_rx) = unbounded::<AppMessage>();
 
     let to_main_tx2 = to_main_tx.clone();
-    
+
     spawn(move || {
-
         tauri::AppBuilder::new()
-        .invoke_handler(move |_webview, arg| {
-        use cmd::Cmd::*;
-        
-        match serde_json::from_str(arg) {
-            Err(e) => {
-                Err(e.to_string())
-            }
-            Ok(command) => {
-                match command {
-                    Startup {callback, error} => {
-                        let default_install_path = default_install_path.clone();
-                        let default_package_path = default_package_path.clone();
-                        let feature_list = feature_list.clone();
-                        let release_data = release_data.clone();
+            .invoke_handler(move |_webview, arg| {
+                use cmd::Cmd::*;
 
-                        tauri::execute_promise(_webview, move || {
+                match serde_json::from_str(arg) {
+                    Err(e) => Err(e.to_string()),
+                    Ok(command) => {
+                        match command {
+                            Startup { callback, error } => {
+                                let default_install_path = default_install_path.clone();
+                                let default_package_path = default_package_path.clone();
+                                let feature_list = feature_list.clone();
+                                let release_data = release_data.clone();
 
-                            Ok(StartupResponse {
-                                feature_list: feature_list.clone(),
-                                package_directory: default_package_path.to_string_lossy().into_owned(),
-                                program_directory: default_install_path.to_string_lossy().into_owned(),
-                                release_data
-                            })
-
-
-                        }, callback, error);
-
-                    }
-                    // DIrectory browse
-                    Browse {browse_for, callback, error} => {
-
-                        let open_path = match browse_for {
-                            cmd::BrowseFor::Program => installer.get_program_dir(),
-                            cmd::BrowseFor::Package => installer.get_package_dir()
-                        };
-
-                        println!("{:?}", installer.get_package_dir());
-                        
-                        to_main_tx.send(AppMessage::Browse(open_path.to_string_lossy().into_owned())).ok();
-
-                        let location = match to_app_rx.recv() {
-                            Ok(AppMessage::BrowseResult(Ok(dialog::Response::Okay(location)))) => {
-                                let mut location_path = PathBuf::from(&location);
-                                
-                                match browse_for {
-                                    cmd::BrowseFor::Program => {
-                                        if !location_path.ends_with("YourControls") {
-                                            location_path.push("YourControls");
-                                        }
-                                        installer.set_program_dir(location_path);
-                                    }
-                                    cmd::BrowseFor::Package => {
-                                        installer.set_package_dir(location_path);
-                                    }
+                                tauri::execute_promise(
+                                    _webview,
+                                    move || {
+                                        Ok(StartupResponse {
+                                            feature_list: feature_list.clone(),
+                                            package_directory: default_package_path
+                                                .to_string_lossy()
+                                                .into_owned(),
+                                            program_directory: default_install_path
+                                                .to_string_lossy()
+                                                .into_owned(),
+                                            release_data,
+                                        })
+                                    },
+                                    callback,
+                                    error,
+                                );
+                            }
+                            // DIrectory browse
+                            Browse {
+                                browse_for,
+                                callback,
+                                error,
+                            } => {
+                                let open_path = match browse_for {
+                                    cmd::BrowseFor::Program => installer.get_program_dir(),
+                                    cmd::BrowseFor::Package => installer.get_package_dir(),
                                 };
 
-                                
+                                println!("{:?}", installer.get_package_dir());
 
-                                Ok(location)
+                                to_main_tx
+                                    .send(AppMessage::Browse(
+                                        open_path.to_string_lossy().into_owned(),
+                                    ))
+                                    .ok();
 
-                            },
-                            _ => Err(CommandError {}.into())
-                        };
-                        
+                                let location = match to_app_rx.recv() {
+                                    Ok(AppMessage::BrowseResult(Ok(dialog::Response::Okay(
+                                        location,
+                                    )))) => {
+                                        let mut location_path = PathBuf::from(&location);
 
-                        tauri::execute_promise(_webview, move || {
-                            location
-                        }, callback, error);
-                        
-                    }
+                                        match browse_for {
+                                            cmd::BrowseFor::Program => {
+                                                if !location_path.ends_with("YourControls") {
+                                                    location_path.push("YourControls");
+                                                }
+                                                installer.set_program_dir(location_path);
+                                            }
+                                            cmd::BrowseFor::Package => {
+                                                installer.set_package_dir(location_path);
+                                            }
+                                        };
 
-                    Install {callback, error, features, options} => {
-                        let mut selected_features = Vec::new();
+                                        Ok(location)
+                                    }
+                                    _ => Err(CommandError {}.into()),
+                                };
 
-                        // Match list of possible features with selected features
-                        if let Some(possible_features) = feature_list.as_ref() {
-                            for feature in possible_features {
-                                if features.contains(&feature.name) {
-                                    selected_features.push(feature.clone())
+                                tauri::execute_promise(_webview, move || location, callback, error);
+                            }
+
+                            Install {
+                                callback,
+                                error,
+                                features,
+                                options,
+                            } => {
+                                let mut selected_features = Vec::new();
+
+                                // Match list of possible features with selected features
+                                if let Some(possible_features) = feature_list.as_ref() {
+                                    for feature in possible_features {
+                                        if features.contains(&feature.name) {
+                                            selected_features.push(feature.clone())
+                                        }
+                                    }
                                 }
+                                // Erase previous exe contents
+                                installer.remove_exe().ok();
+                                // Download and install
+                                let result = match downloader.download_release() {
+                                    Ok(mut zip) => installer.install(
+                                        &mut zip,
+                                        &selected_features,
+                                        options.contains("Desktop Shortcut"),
+                                    ),
+                                    Err(e) => Err(e),
+                                };
+
+                                // Return a result
+                                tauri::execute_promise(
+                                    _webview,
+                                    || match result {
+                                        Ok(_) => Ok(()),
+                                        Err(e) => {
+                                            error!("Installation failed! Reason: {}", e);
+                                            Err(e.into())
+                                        }
+                                    },
+                                    callback,
+                                    error,
+                                );
+                            }
+
+                            Uninstall { callback, error } => {
+                                installer.uninstall();
+
+                                tauri::execute_promise(
+                                    _webview,
+                                    || {
+                                        // match result {
+                                        //     Ok(_) => Ok(()),
+                                        //     Err(e) => Err(e.into())
+                                        // }
+                                        Ok(())
+                                    },
+                                    callback,
+                                    error,
+                                );
+                            }
+
+                            Launch => {
+                                match installer.launch() {
+                                    Ok(_) => {}
+                                    Err(e) => error!(
+                                        "Could not automatically launch the program! Reason: {}",
+                                        e
+                                    ),
+                                };
+
+                                to_main_tx.send(AppMessage::Shutdown).ok();
                             }
                         }
-                        // Erase previous exe contents
-                        installer.remove_exe().ok();
-                        // Download and install
-                        let result = match downloader.download_release() {
-                            Ok(mut zip) => installer.install(&mut zip, &selected_features, options.contains("Desktop Shortcut")),
-                            Err(e) => Err(e)
-                        };
-
-                        // Return a result
-                        tauri::execute_promise(_webview, || {
-                            match result {
-                                Ok(_) => Ok(()),
-                                Err(e) => {
-                                    error!("Installation failed! Reason: {}", e);
-                                    Err(e.into())
-                                }
-                            }
-                        }, callback, error);
-                        
-                    }
-
-                    Uninstall {callback, error} => {
-                        installer.uninstall();
-
-                        tauri::execute_promise(_webview, || {
-                            // match result {
-                            //     Ok(_) => Ok(()),
-                            //     Err(e) => Err(e.into())
-                            // }
-                            Ok(())
-                        }, callback, error);
-                    }
-
-                    Launch => {
-                        match installer.launch() {
-                            Ok(_) => {}
-                            Err(e) => error!("Could not automatically launch the program! Reason: {}", e)
-                        };
-
-                        to_main_tx.send(AppMessage::Shutdown).ok();
+                        Ok(())
                     }
                 }
-                Ok(())
-            }
-        }
-        })
-        .build()
-        .run();
+            })
+            .build()
+            .run();
 
         to_main_tx2.send(AppMessage::Shutdown).ok();
     });
@@ -254,15 +284,13 @@ fn main() {
     loop {
         match to_main_rx.recv() {
             Ok(AppMessage::Browse(path)) => {
-
-                to_app_tx.send(AppMessage::BrowseResult(
-                    dialog::pick_folder(Some(path)).map_err(|_| ())
-                )).ok();
-
+                to_app_tx
+                    .send(AppMessage::BrowseResult(
+                        dialog::pick_folder(Some(path)).map_err(|_| ()),
+                    ))
+                    .ok();
             }
-            Ok(AppMessage::Shutdown) => {
-                return
-            }
+            Ok(AppMessage::Shutdown) => return,
             _ => {}
         }
 

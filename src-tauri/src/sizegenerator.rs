@@ -1,7 +1,7 @@
-use std::{fs::File, path::Path};
 use chrono::offset::Utc;
-use serde_json::{json};
-use serde::{Serialize};
+use serde::Serialize;
+use serde_json::json;
+use std::{fs::File, path::Path};
 
 use crate::util::Error;
 
@@ -15,17 +15,17 @@ fn get_current_time() -> i64 {
 struct FileData {
     path: String,
     size: u64,
-    date: i64
+    date: i64,
 }
 
 pub struct SizeGenerator {
-    file_data: Vec<FileData>
+    file_data: Vec<FileData>,
 }
 
 impl SizeGenerator {
     pub fn new() -> Self {
         Self {
-            file_data: Vec::new()
+            file_data: Vec::new(),
         }
     }
 
@@ -47,9 +47,9 @@ impl SizeGenerator {
         match File::create(path) {
             Ok(file) => match serde_json::to_writer_pretty(file, &data) {
                 Ok(_) => Ok(()),
-                Err(e) => Err(Error::JsonSerializationError(e))
-            }
-            Err(e) => Err(Error::IOError(e))
+                Err(e) => Err(Error::JsonSerializationError(e)),
+            },
+            Err(e) => Err(Error::IOError(e)),
         }
     }
 }
