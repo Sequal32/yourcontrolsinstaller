@@ -29,7 +29,7 @@ class DirectoryEntry extends React.Component {
                 <p class="overtop-label">{this.props.title}</p>
                 <div class="directory-inner-div">
                     <p class="directory-text">{this.props.location}</p>
-                    <img class="browse-button" src={this.state.hover ? "folder-open.svg" : "folder.svg"} onMouseEnter={this.browseHover.bind(this)} onMouseLeave={this.browseLeave.bind(this)} onMouseDown={this.browseClick.bind(this)}></img>
+                    <img class="browse-button" src={this.state.hover ? "folder-open.svg" : "folder.svg"} onMouseEnter={this.browseHover.bind(this)} onMouseLeave={this.browseLeave.bind(this)} onMouseDown={this.browseClick.bind(this)} alt="browse"></img>
                 </div>
             </div>
         );

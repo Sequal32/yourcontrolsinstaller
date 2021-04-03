@@ -5,7 +5,7 @@ import { open } from 'tauri/api/window'
 
 import Dialog from './components/Dialog'
 import DirectoryEntry from './components/DirectoryEntry'
-import {OptionalFeatures, FeatureEntry} from './components/FeatureList'
+import {OptionalFeatures} from './components/FeatureList'
 import Overlay from './components/Overlay'
 
 class App extends React.Component {
@@ -141,7 +141,7 @@ class App extends React.Component {
     }
 
     dialogButtonClicked() {
-        if (this.state.currentDialog.buttonText == "Launch") {
+        if (this.state.currentDialog.buttonText === "Launch") {
             invoke({
                 cmd: "launch"
             })
@@ -159,7 +159,7 @@ class App extends React.Component {
     render() {
         return (
             <div>
-                    <img class="logo-image" src="logo.png"/>
+                    <img class="logo-image" src="logo.png" alt=""/>
                     <DirectoryEntry title="Program Installation Directory" location={this.state.programDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "program")}/>
                     <DirectoryEntry title="Community Packages Directory" location={this.state.packageDirectory} onBrowse={this.onDirectoryBrowse.bind(this, "package")}/>
 

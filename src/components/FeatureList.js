@@ -35,7 +35,7 @@ class FeatureEntry extends React.Component {
         return (
             <div class="feature-div">
                 <div class={this.generateClassName()} onMouseEnter={this.onHover.bind(this)} onMouseLeave={this.onLeave.bind(this)} onMouseDown={this.onClick.bind(this)} checked={this.state.checked}>
-                    <img src="check.png" class="checkbox-image" hidden={!this.props.checked}/>
+                    <img src="check.png" class="checkbox-image" alt="" hidden={!this.props.checked}/>
                 </div>
                 <span class="feature-text">{this.props.name}</span>
             </div>
@@ -52,7 +52,7 @@ class OptionalFeatures extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.features != this.props.features) {
+        if (prevProps.features !== this.props.features) {
             this.selectedFeatures.clear()
             this.groupMap.clear()
         }

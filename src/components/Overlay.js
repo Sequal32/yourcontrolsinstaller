@@ -25,7 +25,7 @@ class Overlay extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.hidden != prevProps.hidden) {
+        if (this.props.hidden !== prevProps.hidden) {
             this.setState({"finished": false})
         }
     }
