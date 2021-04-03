@@ -112,14 +112,14 @@
 .install-button {
     width: 20%;
     background-color: #0069d9;
-    font-size: 1.5em;
+    font-size: 3vw;
     margin-bottom: 5px !important;
 }
 
 .uninstall-button {
     width: 13%;
     background-color: #c41d00;
-    font-size: 1em;
+    font-size: 2vw;
 }
 
 .generic-button {
@@ -158,7 +158,7 @@
     text-align: center;
     vertical-align: middle;
 
-    background: linear-gradient(rgba(35,31,31,1), rgba(5,23,38,1));
+    background: linear-gradient(rgba(35, 31, 31, 1), rgba(5, 23, 38, 1));
     border-radius: 10px;
     transition-duration: 1s;
 }
@@ -212,9 +212,10 @@
     width: 50vw;
 }
 
+
 html {
-    position: fixed;
-    background: linear-gradient(rgba(35,31,31,1), rgba(5,23,38,1));
+    background: linear-gradient(rgba(35, 31, 31, 1), rgba(5, 23, 38, 1));
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     height: 100%;
+    overflow-y: auto;
 }
