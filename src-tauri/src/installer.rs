@@ -1,6 +1,6 @@
 use log::{error, info, warn};
-use std::collections::HashSet;
 use std::io::{self, Cursor};
+use std::{collections::HashSet, path::Path};
 use std::{fs, path::PathBuf};
 use zip::{read::ZipFile, ZipArchive};
 
@@ -50,13 +50,18 @@ impl Installer {
         }
     }
 
-    pub fn store_program_path(&self, path: &str) -> Result<(), io::Error> {
+    pub fn store_program_path(&self, path: impl AsRef<Path>) -> Result<(), io::Error> {
         let hklm = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
         let (subkey, _) = hklm.create_subkey("Software\\YourControls")?;
 
-        subkey.set_value("path", &path)?;
+        subkey.set_value("path", &path.as_ref().as_os_str())?;
 
         Ok(())
+    }
+
+    pub fn remove_registry_entries(&self) {
+        let hklm = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
+        hklm.delete_subkey("Software\\YourControls").ok();
     }
 
     pub fn get_program_path_from_registry(&self) -> Result<PathBuf, io::Error> {
@@ -146,6 +151,7 @@ impl Installer {
     }
 
     pub fn uninstall(&self) {
+        self.remove_registry_entries();
         self.remove_package().ok();
         self.remove_exe().ok();
     }
@@ -222,7 +228,7 @@ impl Installer {
             }
         }
 
-        match self.store_program_path(&self.program_dir.to_str().unwrap_or("")) {
+        match self.store_program_path(&self.program_dir) {
             Ok(_) => info!("Wrote {:?} to registry.", self.program_dir),
             Err(e) => {
                 warn!("Could not write to registry, Reason: {}", e);
