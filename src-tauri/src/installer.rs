@@ -1,5 +1,6 @@
 use log::{error, info, warn};
-use std::io::{self, Cursor};
+use std::fs::File;
+use std::io::{self, Cursor, Read, Write};
 use std::{collections::HashSet, path::Path};
 use std::{fs, path::PathBuf};
 use zip::{read::ZipFile, ZipArchive};
@@ -131,6 +132,29 @@ impl Installer {
         }
     }
 
+    pub fn get_config_bytes(&self) -> Result<Vec<u8>, io::Error> {
+        let path = self.get_program_dir().join("config.json");
+        let mut buf = Vec::new();
+
+        match File::open(path) {
+            Ok(mut f) => f.read_to_end(&mut buf)?,
+            Err(e) => return Err(e),
+        };
+
+        Ok(buf)
+    }
+
+    pub fn write_config_bytes(&self, bytes: Vec<u8>) -> Result<(), io::Error> {
+        let path = self.get_program_dir().join("config.json");
+
+        match File::create(path) {
+            Ok(mut f) => f.write_all(&bytes).ok(),
+            Err(e) => return Err(e),
+        };
+
+        Ok(())
+    }
+
     pub fn remove_exe(&self) -> Result<(), io::Error> {
         let path = self.get_exe_path();
 
@@ -255,6 +279,28 @@ impl Installer {
 
             launch_program(path, None);
         }
+
+        Ok(())
+    }
+
+    pub fn install_sequence(
+        &mut self,
+        contents: &mut ZipArchive<Cursor<Vec<u8>>>,
+        features: &Features,
+        create_shortcut: bool,
+    ) -> Result<(), Error> {
+        // Erase previous exe contents
+        let config_backup = self.get_config_bytes();
+
+        self.remove_exe().ok();
+
+        self.install(contents, features, create_shortcut)?;
+
+        // Replace config
+        match config_backup {
+            Ok(b) => self.write_config_bytes(b).ok(),
+            Err(_) => None,
+        };
 
         Ok(())
     }

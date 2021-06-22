@@ -215,11 +215,9 @@ fn main() {
                                         }
                                     }
                                 }
-                                // Erase previous exe contents
-                                installer.remove_exe().ok();
                                 // Download and install
                                 let result = match downloader.download_release() {
-                                    Ok(mut zip) => installer.install(
+                                    Ok(mut zip) => installer.install_sequence(
                                         &mut zip,
                                         &selected_features,
                                         options.contains("Desktop Shortcut"),
