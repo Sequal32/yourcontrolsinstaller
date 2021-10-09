@@ -155,11 +155,23 @@ impl Installer {
         Ok(())
     }
 
+    pub fn remove_folder_contents(&self) -> Result<(), io::Error> {
+        fs::remove_dir_all(self.program_dir.join("assets")).ok();
+        fs::remove_dir_all(self.program_dir.join("definitions")).ok();
+        fs::remove_file(self.program_dir.join("README.txt")).ok();
+        fs::remove_file(self.program_dir.join("SimConnect.dll")).ok();
+        fs::remove_file(self.program_dir.join("Config.json")).ok();
+        fs::remove_file(self.program_dir.join("log.txt")).ok();
+        fs::remove_file(self.program_dir.join(EXE_NAME)).ok();
+        fs::remove_dir(&self.program_dir).ok();
+        Ok(())
+    }
+
     pub fn remove_exe(&self) -> Result<(), io::Error> {
         let path = self.get_exe_path();
 
         if path.exists() {
-            return match fs::remove_dir_all(&self.program_dir) {
+            return match self.remove_folder_contents() {
                 Ok(_) => {
                     info!("Removed exe folder contents at {:?}", self.program_dir);
                     Ok(())

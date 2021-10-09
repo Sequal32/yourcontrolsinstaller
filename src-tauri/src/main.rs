@@ -77,9 +77,9 @@ fn main() {
             path
         }
         Err(_) => match env::var("APPDATA") {
-            Ok(path) => {
+            Ok(path_str) => {
                 info!("Using default installation path.");
-                PathBuf::from(path)
+                PathBuf::from(path_str).join("YourControls")
             }
             Err(e) => {
                 error!("Could not use any installation path. Reason: {}", e);
@@ -184,14 +184,14 @@ fn main() {
                                                 if !location_path.ends_with("YourControls") {
                                                     location_path.push("YourControls");
                                                 }
-                                                installer.set_program_dir(location_path);
+                                                installer.set_program_dir(location_path.clone());
                                             }
                                             cmd::BrowseFor::Package => {
-                                                installer.set_package_dir(location_path);
+                                                installer.set_package_dir(location_path.clone());
                                             }
                                         };
 
-                                        Ok(location)
+                                        Ok(location_path)
                                     }
                                     _ => Err(CommandError {}.into()),
                                 };
