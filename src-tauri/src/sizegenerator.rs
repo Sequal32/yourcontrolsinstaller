@@ -32,7 +32,7 @@ impl SizeGenerator {
     pub fn add_file(&mut self, relative_path: String, size: u64) -> std::io::Result<()> {
         self.file_data.push(FileData {
             path: relative_path,
-            size: size,
+            size,
             date: get_current_time(),
         });
 

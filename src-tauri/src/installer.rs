@@ -6,7 +6,7 @@ use std::{fs, path::PathBuf};
 use zip::{read::ZipFile, ZipArchive};
 
 use crate::sizegenerator::SizeGenerator;
-use crate::util::{get_path_beginning, launch_program, strip_path_beginning, Error, Features};
+use crate::util::{get_path_beginning, launch_program, strip_path_beginning, Error, Feature};
 
 const COMMUNITY_PREFIX: &str = "community";
 const OPTIONAL_PREFIX: &str = "optionals";
@@ -69,7 +69,9 @@ impl Installer {
         let hklm = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER);
         let subkey = hklm.open_subkey("Software\\YourControls")?;
 
-        subkey.get_value("path").map(|x: String| PathBuf::from(x))
+        let path: String = subkey.get_value("path")?;
+
+        Ok(PathBuf::from(path))
     }
 
     pub fn set_package_dir(&mut self, package_dir: PathBuf) {
@@ -207,7 +209,7 @@ impl Installer {
     pub fn install(
         &self,
         contents: &mut ZipArchive<Cursor<Vec<u8>>>,
-        features: &Features,
+        features: &[Feature],
         create_shortcut: bool,
     ) -> Result<(), Error> {
         // Convert features to unique path names
@@ -298,7 +300,7 @@ impl Installer {
     pub fn install_sequence(
         &mut self,
         contents: &mut ZipArchive<Cursor<Vec<u8>>>,
-        features: &Features,
+        features: &[Feature],
         create_shortcut: bool,
     ) -> Result<(), Error> {
         // Erase previous exe contents

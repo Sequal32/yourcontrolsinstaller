@@ -15,10 +15,10 @@ impl FlightSimFinder {
     fn get_config_file_handle(env_var: &str, post_path: &str) -> Result<File, Error> {
         match env::var(env_var) {
             Ok(path) => match File::open(format!("{}{}", path, post_path)) {
-                Ok(f) => return Ok(f),
-                Err(e) => return Err(Error::IOError(e)),
+                Ok(f) => Ok(f),
+                Err(e) => Err(Error::IOError(e)),
             },
-            Err(e) => return Err(Error::EnviornmentError(e)),
+            Err(e) => Err(Error::EnviornmentError(e)),
         }
     }
 
@@ -33,26 +33,24 @@ impl FlightSimFinder {
         let file = Self::get_config_file()?;
         let reader = BufReader::new(file);
 
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                if line.starts_with("InstalledPackagesPath") {
-                    let first_quote = match line.find("\"") {
-                        Some(index) => index,
-                        None => return Err(Error::MissingQuote),
-                    };
+        for line in reader.lines().flatten() {
+            if line.starts_with("InstalledPackagesPath") {
+                let first_quote = match line.find('\"') {
+                    Some(index) => index,
+                    None => return Err(Error::MissingQuote),
+                };
 
-                    let closing_quote = match line[first_quote + 1..].find("\"") {
-                        Some(index) => index + first_quote,
-                        None => return Err(Error::MissingQuote),
-                    };
+                let closing_quote = match line[first_quote + 1..].find('\"') {
+                    Some(index) => index + first_quote,
+                    None => return Err(Error::MissingQuote),
+                };
 
-                    return Ok([&line[first_quote + 1..closing_quote + 1], "Community"]
-                        .iter()
-                        .collect());
-                }
+                return Ok([&line[first_quote + 1..closing_quote + 1], "Community"]
+                    .iter()
+                    .collect());
             }
         }
 
-        return Err(Error::MissingQuote);
+        Err(Error::MissingQuote)
     }
 }

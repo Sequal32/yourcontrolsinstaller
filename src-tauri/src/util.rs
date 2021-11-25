@@ -3,6 +3,7 @@ use std::{ffi::OsStr, fmt::Display, io, os::windows::ffi::OsStrExt, path::PathBu
 use winapi::um::shellapi::ShellExecuteW;
 
 #[derive(Debug)]
+#[allow(clippy::enum_variant_names)]
 pub enum Error {
     EnviornmentError(std::env::VarError),
     IOError(std::io::Error),
@@ -47,17 +48,17 @@ pub struct Feature {
 pub type Features = Vec<Feature>;
 
 pub fn strip_path_beginning(path: &str) -> Option<String> {
-    if let Some(dir_slash) = path.find("/") {
+    if let Some(dir_slash) = path.find('/') {
         return Some(path[dir_slash + 1..].to_string());
     }
-    return None;
+    None
 }
 
 pub fn get_path_beginning(path: &str) -> Option<String> {
-    if let Some(dir_slash) = path.find("/") {
+    if let Some(dir_slash) = path.find('/') {
         return Some(path[0..dir_slash].to_string());
     }
-    return None;
+    None
 }
 
 pub fn to_u16s<S: AsRef<OsStr>>(s: S) -> io::Result<Vec<u16>> {
@@ -86,9 +87,9 @@ pub fn launch_program(path: PathBuf, arg: Option<&str>) {
             std::ptr::null_mut(),
             open_bytes.as_ptr(),
             path_bytes.as_ptr(),
-            arg_bytes.map_or_else(|| std::ptr::null(), |x| x.as_ptr()),
+            arg_bytes.map_or_else(std::ptr::null, |x| x.as_ptr()),
             std::ptr::null(),
-            winapi::ctypes::c_int::from(5),
+            5,
         );
     }
 }
