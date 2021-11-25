@@ -297,6 +297,16 @@ impl Installer {
         Ok(())
     }
 
+    pub fn error_for_sim_running(&self) -> Result<(), Error> {
+        let mut conn = simconnect::SimConnector::new();
+
+        if conn.connect("YourControlsInstaller") {
+            return Err(Error::SimRunning);
+        }
+
+        Ok(())
+    }
+
     pub fn install_sequence(
         &mut self,
         contents: &mut ZipArchive<Cursor<Vec<u8>>>,

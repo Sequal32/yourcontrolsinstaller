@@ -216,7 +216,10 @@ fn main() {
                                     }
                                 }
                                 // Download and install
-                                let result = match downloader.download_release() {
+                                let result = match installer
+                                    .error_for_sim_running()
+                                    .and_then(|_| downloader.download_release())
+                                {
                                     Ok(mut zip) => installer.install_sequence(
                                         &mut zip,
                                         &selected_features,

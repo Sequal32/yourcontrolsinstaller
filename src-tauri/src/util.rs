@@ -13,6 +13,7 @@ pub enum Error {
     ReleaseError,
     WebError(attohttpc::Error),
     ZipError(zip::result::ZipError),
+    SimRunning,
 }
 
 impl std::error::Error for Error {}
@@ -34,6 +35,10 @@ impl Display for Error {
             Error::ReleaseError => write!(f, "Could not fetch release data."),
             Error::ZipError(e) => write!(f, "Could not read release ZIP file. Reason: {}", e),
             Error::IOError(e) => write!(f, "An IO error occured. Error: {}", e),
+            Error::SimRunning => write!(
+                f,
+                "Sim is running! Please close the sim to proceed with the install."
+            ),
         }
     }
 }
