@@ -9,7 +9,7 @@ use crate::util::{Error, Features};
 const LATEST_RELEASE_URL: &str =
     "https://api.github.com/repos/sequal32/yourcontrols/releases/latest";
 const RELEASE_BASE_URL: &str =
-    "https://github.com/Sequal32/yourcontrols/releases/download/vbase/YourControls.zip";
+    "https://github.com/Sequal32/yourcontrols/releases/latest/download/YourControls.zip";
 const USER_AGENT: &str =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0";
 
